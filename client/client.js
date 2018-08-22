@@ -180,12 +180,6 @@ function removeSpectator(spectator){
 	client.isOnATeam = true;
 }
 
-// checks if the spy buttons were clicked
-function checkButtonStates(state){
-	if(state.blue == true)
-		removeBlueSpyButton();
-}
-
 // send client information to server about the spies
 function redSpyMaster(){
 	if(client.team == 'red'){
@@ -202,46 +196,29 @@ function blueSpyMaster(){
 }
 
 // remove spy button if someone has selected it already and reveal message that shows who the spy is
-function removeRedSpyButton(nameOfRedSpy){
-	var redSpy = document.querySelector("#red-spy-message");
-	var redSpyName = document.querySelector("#red-spy-name");
-	redSpyName.innerHTML = nameOfRedSpy;
-	if(nameOfRedSpy != ''){
-		redSpy_btn.style.display = "none";
+function removeRedSpyButton(playerData){
+	if(playerData.redSpyExists){
+		var redSpy = document.querySelector("#red-spy-message");
+		var redSpyName = document.querySelector("#red-spy-name");
+		redSpyName.innerHTML = playerData.redSpyMaster;
+		
+		redSpy_btn.classList.add("hide");
 		redSpy.classList.remove("hide");
 		thereIsARedSpy = true;
+		socket.emit('highlightRedSpy', playerData.redSpyMaster);
 	}
-	socket.emit('highlightRedSpy', nameOfRedSpy);
 }
 
-function removeBlueSpyButton(nameOfBlueSpy){
-	var blueSpy = document.querySelector("#blue-spy-message");
-	var blueSpyName = document.querySelector("#blue-spy-name");
-	blueSpyName.innerHTML = nameOfBlueSpy;
-	if(nameOfBlueSpy != ''){
-		blueSpy_btn.style.display = "none";	
+function removeBlueSpyButton(playerData){
+	if(playerData.blueSpyExists){
+		var blueSpy = document.querySelector("#blue-spy-message");
+		var blueSpyName = document.querySelector("#blue-spy-name");
+		blueSpyName.innerHTML = playerData.blueSpyMaster;
+
+		blueSpy_btn.classList.add("hide");	
 		blueSpy.classList.remove("hide");
 		thereIsABlueSpy = true;
-	}
-	socket.emit('highlightBlueSpy');
-}
-
-// removes the HTML and name of a team switching client
-function blueToRed(spectator){
-	// blue player switches to red team
-	var childs = bluePlayerList.querySelectorAll("h3");
-	for(i=0;i<childs.length;i++){
-		if(childs[i].innerHTML == (spectator + '  '))
-			bluePlayerList.removeChild(childs[i]);
-	}
-}
-
-function redToBlue(spectator){
-	// red player switches to blue team
-	var childs = redPlayerList.querySelectorAll("h3");
-	for(i=0;i<childs.length;i++){
-		if(childs[i].innerHTML == (spectator + '  '))
-			redPlayerList.removeChild(childs[i]);
+		socket.emit('highlightBlueSpy', playerData.blueSpyMaster);
 	}
 }
 
@@ -265,6 +242,40 @@ function highlightBlueSpy(nameOfSpy){
 			bluePlayers[i].style.border = "2px solid lightblue"
 		}
 	}
+}
+
+// removes the HTML and name of a team switching client
+function bluePlayerLeft(playerName){
+	// blue player switches to red team
+	var bluePlayers = bluePlayerList.querySelectorAll("h3");
+	for(i=0;i<bluePlayers.length;i++){
+		if(bluePlayers[i].innerHTML == (playerName + '  '))
+			bluePlayerList.removeChild(bluePlayers[i]);
+	}
+}
+
+function redPlayerLeft(playerName){
+	// red player switches to blue team
+	var redPlayers = redPlayerList.querySelectorAll("h3");
+	for(i=0;i<redPlayers.length;i++){
+		if(redPlayers[i].innerHTML == (playerName + '  '))
+			redPlayerList.removeChild(redPlayers[i]);
+	}
+}
+
+// need to show the spy button when a current spy leaves so that a new player can be it
+function showBlueSpyButton(){
+	console.log("blue spymaster has left");
+	client.spymaster = false;
+	blueSpy_btn.classList.remove("hide");
+	document.querySelector("#blue-spy-message").classList.add("hide");
+}
+
+function showRedSpyButton(){
+	console.log("red spymaster has left");
+	client.spymaster = false;
+	redSpy_btn.classList.remove("hide");
+	document.querySelector("#red-spy-message").classList.add("hide");
 }
 
 // takes an array of numbers and shuffles the indices around
@@ -677,8 +688,8 @@ function removePlayers(playerData){
 	console.log(playerData.allPlayers.length);
 	for(j=0; j<playerData.allPlayers.length;j++){
 		removeSpectator(playerData.allPlayers[j]);
-		blueToRed(playerData.allPlayers[j]);
-		redToBlue(playerData.allPlayers[j]);
+		bluePlayerLeft(playerData.allPlayers[j]);
+		redPlayerLeft(playerData.allPlayers[j]);
 	}
 
 	// reset all buttons and messages
@@ -795,7 +806,6 @@ socket.on('showClientChatter', highlightChatter);
 socket.on('allSpectators', currentSpectators);
 socket.on('allBluePlayers', currentBluePlayers);
 socket.on('allRedPlayers', currentRedPlayers);
-socket.on('buttonStates', checkButtonStates);
 socket.on('nameOfBlueSpy', removeBlueSpyButton);
 socket.on('nameOfRedSpy', removeRedSpyButton);
 socket.on('updateBoard', updateBoard);
@@ -805,14 +815,16 @@ socket.on('updateGameWords', updateGameWords);
 socket.on('bluePlayer', createBluePlayers);
 socket.on('redPlayer', createRedPlayers);
 socket.on('removeSpectator', removeSpectator);
-socket.on('blueToRed', blueToRed);
-socket.on('redToBlue', redToBlue);
+socket.on('bluePlayerLeft', bluePlayerLeft);
+socket.on('redPlayerLeft', redPlayerLeft);
 
 // spy stuff setup
-socket.on('blueSpyButton', removeBlueSpyButton);
-socket.on('redSpyButton', removeRedSpyButton);
+socket.on('someoneBecameBlueSpy', removeBlueSpyButton);
+socket.on('someoneBecameRedSpy', removeRedSpyButton);
 socket.on('highlightBlueSpy', highlightBlueSpy);
 socket.on('highlightRedSpy', highlightRedSpy);
+socket.on('blueSpyLeft', showBlueSpyButton);
+socket.on('redSpyLeft', showRedSpyButton);
 
 // game started
 socket.on('gameHasStarted', updateGameStatus);

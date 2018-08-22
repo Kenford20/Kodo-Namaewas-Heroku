@@ -5,7 +5,7 @@
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
-var port = process.env.PORT || 8080;  //heroku port or default port 3000
+var port = process.env.PORT || 3000;  //heroku port or default port 3000
 
 //app.use('/client', express.static(__dirname + '/client'));
 app.use(express.static('client'));
@@ -35,14 +35,13 @@ var playerData = {
 	blueIDs: [],
 	redPlayers: [],
 	redIDs: [],
+	blueSpyExists: false,
+	redSpyExists: false,
 	blueSpyMaster:'',
 	redSpyMaster:'',
+
 	blueSpyID:0,
 	redSpyID:0
-};
-var buttonStates = {
-	blue: false,
-	red: false
 };
 
 var gameData = {	
@@ -73,15 +72,14 @@ var gameData = {
 ********************************************/
 io.sockets.on('connection', function(socket){
 	//console.log('socket connection: '+ socket.id);
-	//socketIDlist.push(socket.id);
+	socketIDlist.push(socket.id);
 		
 	//update a new player on the spectators list currently
 	socket.emit('allSpectators', playerData.spectators);
 	socket.emit('allBluePlayers', playerData.bluePlayers);
 	socket.emit('allRedPlayers', playerData.redPlayers);
-	socket.emit('buttonStates', buttonStates);
-	socket.emit('nameOfBlueSpy', playerData.blueSpyMaster);
-	socket.emit('nameOfRedSpy', playerData.redSpyMaster);
+	socket.emit('nameOfBlueSpy', playerData);
+	socket.emit('nameOfRedSpy', playerData);
 	socket.emit('updateBoard', gameData);
 	socket.emit('updateGameWords', gameData);
 
@@ -103,10 +101,18 @@ io.sockets.on('connection', function(socket){
 			}
 		}
 
-		console.log("This player has left: " + leavingPlayerName);
+		if(socket.id == playerData.blueSpyID){
+			playerData.blueSpyExists = false;
+			io.sockets.emit('blueSpyLeft');
+		}
+		else if(socket.id == playerData.redSpyID){
+			playerData.redSpyExists = false;
+			io.sockets.emit('redSpyLeft');
+		}
+		io.sockets.emit('bluePlayerLeft', leavingPlayerName);
+		io.sockets.emit('redPlayerLeft', leavingPlayerName);
 
-		io.sockets.emit('blueToRed', leavingPlayerName);
-		io.sockets.emit('redToBlue', leavingPlayerName);
+		console.log("This player has left: " + leavingPlayerName);
 	})
 
 	// team setup
@@ -166,7 +172,7 @@ io.sockets.on('connection', function(socket){
 		var bluePlayerID = playerData.blueIDs.indexOf(socket.id);
 		playerData.blueIDs.splice(bluePlayerID, 1);
 		console.log("Blue players after removal: " + playerData.bluePlayers);
-		io.sockets.emit('blueToRed', bluePlayerToBeRemoved);
+		io.sockets.emit('bluePlayerLeft', bluePlayerToBeRemoved);
 	})
 
 	socket.on('red', function(clientName){
@@ -188,14 +194,14 @@ io.sockets.on('connection', function(socket){
 		var redPlayerID = playerData.redIDs.indexOf(socket.id);
 		playerData.redIDs.splice(redPlayerID, 1);
 		console.log("Red players after removal: " + playerData.redPlayers);
-		io.sockets.emit('redToBlue', redPlayerToBeRemoved);
+		io.sockets.emit('redPlayerLeft', redPlayerToBeRemoved);
 	})
 
 	socket.on('blueSpy', function(nameOfSpyMaster){
-		io.sockets.emit('blueSpyButton', nameOfSpyMaster);
-		buttonStates.blue = true;
+		playerData.blueSpyExists = true;
 		playerData.blueSpyMaster = nameOfSpyMaster;
 		playerData.blueSpyID = socket.id;
+		io.sockets.emit('someoneBecameBlueSpy', playerData);
 		console.log("BLUE SPY ID: " + playerData.blueSpyID);
 	})
 
@@ -204,10 +210,10 @@ io.sockets.on('connection', function(socket){
 	})
 	
 	socket.on('redSpy', function(nameOfSpyMaster){
-		io.sockets.emit('redSpyButton', nameOfSpyMaster);
-		buttonStates.red = true;
+		playerData.redSpyExists = true;
 		playerData.redSpyMaster = nameOfSpyMaster;
 		playerData.redSpyID = socket.id;
+		io.sockets.emit('someoneBecameRedSpy', playerData);
 		console.log("RED SPY ID: " + playerData.redSpyID);
 	})
 
@@ -392,6 +398,8 @@ io.sockets.on('connection', function(socket){
 		playerData.redIDs = [];
 		playerData.blueSpyMaster = '';
 		playerData.redSpyMaster = '';
+		playerData.blueSpyExists = false;
+		playerData.redSpyExists = false;
 		playerData.blueSpyID = 0;
 		playerData.redSpyID = 0;
 

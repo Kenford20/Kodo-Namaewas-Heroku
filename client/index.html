@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> KODO NAMAEWAS </title>
+	<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+	<script src="client.js"></script>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+	<header>
+		<h1> KODO NAMAEWAS </h1>
+		<button class="btn" id="start-game">Gemu o Hajimeru!</button>
+		<button class="btn" id="restart-game"> Gemu o Risettosuru </button>
+		
+	</header>
+
+	<section id="blue-team">
+		<h1> AO CHIMU </h1>
+		<div id="blue-players">
+			<button class="btn" id="blue-spy">SUPAIMASUTA</button>
+		</div>
+	</section>
+
+	<div class="hide" id="blue-spy-message">
+		<h4> <span id="blue-spy-name"> Name </span> is the Supaimasutā </h4>
+	</div>
+
+	<div class="hide" id="blue-guesser">
+		<h4> <span id="blue-guess-name"> Name </span> has guessed the word <span id="blue-guess-word"> Word </span> </h4>
+	</div>
+
+	<section class="nest" id="game-board">
+		<div class="card"><a href="#">Word1</a></div>
+		<div class="card"><a href="#">Word2</a></div>
+		<div class="card"><a href="#">Word3</a></div>
+		<div class="card"><a href="#">Word4</a></div>
+		<div class="card"><a href="#">Word5</a></div>
+		<div class="card"><a href="#">Word6</a></div>
+		<div class="card"><a href="#">Word7</a></div>
+		<div class="card"><a href="#">Word8</a></div>
+		<div class="card"><a href="#">Word9</a></div>
+		<div class="card"><a href="#">Word10</a></div>
+		<div class="card"><a href="#">Word11</a></div>
+		<div class="card"><a href="#">Word12</a></div>
+		<div class="card"><a href="#">Word13</a></div>
+		<div class="card"><a href="#">Word14</a></div>
+		<div class="card"><a href="#">Word15</a></div>
+		<div class="card"><a href="#">Word16</a></div>
+		<div class="card"><a href="#">Word17</a></div>
+		<div class="card"><a href="#">Word18</a></div>
+		<div class="card"><a href="#">Word19</a></div>
+		<div class="card"><a href="#">Word20</a></div>
+		<div class="card"><a href="#">Word21</a></div>
+		<div class="card"><a href="#">Word22</a></div>
+		<div class="card"><a href="#">Word23</a></div>
+		<div class="card"><a href="#">Word24</a></div>
+		<div class="card"><a href="#">Word25</a></div>
+	</section>
+
+	<section id="red-team">
+		<h1> AKA CHIMU </h1>
+		<div id="red-players"> 		
+			<button class="btn" id="red-spy">SUPAIMASUTA</button>
+		</div>
+	</section>
+
+	<div class="hide" id="red-spy-message">
+		<h4> <span id="red-spy-name"> Name </span> is the Supaimasutā </h4>
+	</div>
+
+	<div class="hide" id="red-guesser">
+		<h4> <span id="red-guess-name"> Name </span> has guessed the word <span id="red-guess-word"> Word </span> </h4>
+	</div>
+
+	<section id="spectators">
+		<button class="btn" id="red">Join Aka Chimu</button>
+		<button class="btn" id="blue">Join Ao Chimu</button>
+		<h4> Welcome! Please enter your name and select a team </h4>
+		<div id="players">
+			
+		</div>
+		<input id="name" placeholder="Enter your namae">
+		<button class="btn" id="name_btn">Submit</button>
+	</section>
+
+	<section id="instructions">
+		<h4 id="message"> Welcome to Kodo Namaewas!!! Please select your team and click gemu o hajimeru when everybody is ready! </h4>
+		<h2 class="hide" id="blue-waiting"> WAITING FOR <span class="blue-word">BLUE </span>SPYMASTER . . . .</h2>
+		<h2 class="hide" id="red-waiting"> WAITING FOR <span class="red-word"> RED </span> SPY MASTER . . . . </h2>
+		<h2 class="hide" id="blue-guess"> <span class="blue-word"> BLUE  TEAM </span>, IT IS YOUR TURN TO GUESS! </h2>
+		<h2 class="hide" id="red-guess"> <span class="red-word"> RED TEAM </span>, IT IS YOUR TURN TO GUESS! </h2>
+		<h2 class="hide" id="blue-wins"> SHOSHA WA . . . <span class="blue-word"> AO CHIMUDESU!!!! </span> </h2>
+		<h2 class="hide" id="red-wins"> SHOSHA WA . . . <span class="red-word"> AKA CHIMUDESU!!!! </span> </h2>
+	</section>
+
+	<section class="nest2" id="hint">
+		<h2 class="hide" id="hint-message"> The hint is <span id="hint-word">[word]</span>, There are <span id="hint-number">[number]</span> cards that go with this clue</h2>
+		<h1 class="hide" id="congrats"> YOKU YATTA!!! OMEDETO!!!!!!! </h1>
+		<button class="btn hide" id="hint-btn">Submit Hint</button>
+		<input class="hide" id="input-hint" placeholder="Enter your hint">
+		<h2 class="hide" id="reset-message"> GAME HAS BEEN RESET! </h2>
+	</section>
+
+	<section class="nest3" id="chat">
+		<div class="nest4 chat-black" id="global-chat-div">
+			<div id="chat-box"> </div>		
+			<div id="input-box"> <textarea id="chat-input" rows="1" placeholder="Chat with your nakamas"></textarea> </div>
+		</div>
+
+		<div class="nest4 chat-black" id="team-chat-div">
+			<div id="team-chat-box"> </div>
+			<div id="team-input-box"> <textarea id="team-chat-input" rows="1" placeholder="Chat with your chimu "></textarea> </div>
+		</div>
+	</section>
+
+</body>
+
+</html>

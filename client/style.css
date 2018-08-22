@@ -1,0 +1,423 @@
+body{
+	margin:0;
+	padding:0;
+	background:grey;
+	display:grid;
+	font-size:15px;
+	font-family: "Tahoma";
+}
+
+body{
+	grid-template-columns: 1fr 4fr 1fr;
+	grid-template-rows: 0.5fr 3fr 0.5fr 0.5fr 0.5fr 1fr;
+	/*grid-template-rows:auto;*/
+}
+
+.hide{
+	display:none;
+}
+
+.btn:hover{
+	background-color:white !important;
+}
+
+/* default color of cards */
+.nest .default{
+	border:4px solid black;
+	background-color:lightgrey;
+}
+
+/* color of cards for guessers when clicked */
+.nest .red{
+	background-color:#db3328;
+	border: 4px solid black;
+}
+
+.nest .blue{
+	background-color:#1c64ff;
+	border: 4px solid black;
+}
+
+.nest .yellow{
+	background-color:#fff68f;
+	border: 4px solid black;	
+}
+
+.nest .black{
+	background-color:black;
+	border:2px solid grey;
+}
+
+.nest .black a{
+	color:white;
+}
+
+/* color of cards for spymasters when clicked */
+.nest .red2{
+	border:15px solid #db3328;
+	background-color:white;
+}
+
+.nest .blue2{
+	border:15px solid #1c64ff;
+	background-color:white;
+}
+
+.nest .yellow2{
+	border:15px solid #fff68f;
+	background-color:white;
+}
+
+.nest .black2{
+	border:15px solid black;
+	background-color:white;
+	color:black;
+}
+
+/* Header Styles 
+--------------------------------------------*/
+header{
+	background-color:lightgrey;
+	text-align:center;
+	grid-column: 1/4;
+	grid-row:1/2;
+	border-bottom:5px solid black;
+}
+
+header h1{
+	margin:0;
+}
+
+#start-game{
+	background-color:grey;
+	padding:10px;
+	color:black;
+	width:200px;
+	border: 3px solid black;
+	border-radius:10px;
+}
+
+#restart-game{
+	background-color:black;
+	padding:10px;
+	color:grey;
+	width:200px;
+	border: 3px solid grey;
+	border-radius:10px;
+}
+
+/* Gameboard 
+--------------------------------------------*/
+.nest{
+	background-color:black;
+	display:grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr;	
+}
+
+.nest div{
+	border:4px solid black;
+	border-radius:10px;
+	background-color:lightgrey;
+	text-align:center;
+	line-height: 80px;
+}
+
+.nest a{
+	color:#dbd4e7;
+	color:black;
+	text-decoration:none;
+}
+
+.nest a:hover{
+	color:white;
+}
+
+/* Blue Team
+--------------------------------------------*/
+#blue-team{
+	grid-column:1/2;
+	grid-row:2/span 4;
+	background-color:#1c64ff;
+	text-align:center;
+	border-right:5px solid black;
+	color:lightblue;
+}
+
+#blue-spy{
+	border:2px solid grey;
+	padding:10px;
+	color:grey;
+	background-color:lightblue;
+}
+
+#blue-spy-message {
+	text-align:center;
+	grid-column:1/2;
+	grid-row:4/5;
+	color:blue;
+	background-color:lightblue;
+	border:3px solid black;
+}
+
+#blue-spy-message span{
+	color:grey;
+}
+
+#blue-guesser{
+	text-align:center;
+	grid-column:1/2;
+	grid-row:3/4;
+	color:blue;
+	background-color:lightblue;
+	border:3px solid black;
+}
+
+#blue-guess-name{
+	color:grey;
+}
+
+#blue-guess-word{
+	color: grey;
+}
+
+/* Red Team
+--------------------------------------------*/
+#red-team{
+	/* grid area: row start / col start / row end / col end */
+	grid-area: 2 / 3 / 5 / 4;
+	background-color:#db3328;
+	text-align:center;
+	border-left:5px solid black;
+	color:pink;
+}
+
+#red-spy{
+	border:2px solid grey;
+	padding:10px;
+	color:grey;
+	background-color:pink;
+}
+
+#red-spy-message {
+	text-align:center;
+	grid-column:3/4;
+	grid-row:4/5;
+	color:red;
+	background-color:pink;
+	border:3px solid black;
+}
+
+#red-spy-message span{
+	color:grey;
+}
+
+#red-guesser{
+	text-align:center;
+	grid-column:3/4;
+	grid-row:3/4;
+	color:red;
+	background-color:pink;
+	border:3px solid black;
+}
+
+#red-guess-name{
+	color: grey;
+}
+
+#red-guess-word{
+	color:grey;
+}
+
+/* Spectators 
+--------------------------------------------*/
+#spectators{
+	grid-column:1/4;
+	grid-row:5/6;
+	background-color:green;
+	text-align:center;
+	border-top: 5px solid black;
+}
+
+#spectators li{
+	display:inline-block;
+}
+
+#red{
+	border:2px solid black;
+	padding:10px;
+	color:red;
+	border-radius:10px;
+	background-color:pink;
+	width:130px;
+}
+
+#blue{
+	border:2px solid black;
+	border-radius: 10px;
+	padding: 10px;
+	color:blue;	
+	background-color:lightblue;
+	width:130px;
+}
+
+
+#name{
+	height:30px;
+}
+
+#spectators #name_btn{
+	border:2px solid black;
+	padding:10px;
+	color:green;
+}
+
+#spectators #red{
+	float:right;	
+}
+
+#spectators #blue{
+	float:left;
+}
+
+#spectators #players h3{
+	display:inline;
+	margin-bottom:5px;
+	color:white;
+}
+
+/* Instructions 
+--------------------------------------------*/
+#instructions{
+	background-color:orange;
+	border:2px solid black;
+	text-align:center;
+}
+
+.blue-word{
+	color: #1c64ff;
+}
+
+.red-word{
+	color: #db3328;
+}
+
+/* Chat
+--------------------------------------------*/
+.nest3{
+	background-color:black;
+	display:grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+.nest4{
+	display:grid;
+	grid-template-rows:5fr 1fr;
+}
+
+.highlight-chatter{
+	color:green;
+}
+
+#chat{
+	grid-column:1/4;
+	grid-row:6/7;
+	background:lightgrey;
+	position:relative;
+	width:100%;
+	overflow:hidden;
+}
+
+#chat-box, #team-chat-box{
+	max-height:125px;
+	overflow-y:scroll;
+}
+
+#input-box, #team-input-box{
+	width:100%;
+}
+
+#chat-input, #team-chat-input{
+	box-sizing:border-box;
+	width:100%;
+	background-color:white;
+}
+
+.chat-black{
+	border:5px solid black;
+	border-radius: 10px;
+}
+
+.team-chat-blue{
+	border:5px solid #1c64ff;
+	border-radius: 10px;
+}
+
+.team-chat-red{
+	border:5px solid #db3328;
+	border-radius: 10px;
+}
+
+.chat-message{
+	padding-top:0;
+	margin-top:0;
+	margin-bottom:2px;
+}
+
+/* Hints
+--------------------------------------------*/
+.nest2{
+	border:2px solid black;
+	background-color:#fff68f;
+	text-align:center;
+}
+
+#hint-word, #hint-number{
+	color:grey;
+}
+
+#input-hint{
+	padding:10px;
+	border:2px solid black;
+	border-radius:10px;
+}
+
+#hint-btn{
+	color:purple;
+	padding:10px;
+	border:2px solid black;
+	border-radius:10px;
+}
+
+/* dropdown menu with browser support*/
+body select { 
+	display: inline-block; 
+	padding: 10px 30px 10px 13px !important;
+	margin-bottom:10px;
+	height: auto !important; 
+	border: 2px solid black; 
+	border-radius: 10px; 
+	background: url("download.png") right center no-repeat; 
+	background-size:15px;
+	background-color: #fff; 
+	color: purple; 
+	font-size: 12px; 
+	line-height: 16px !important; 
+	appearance: none; 
+	/* this is must */ -webkit-appearance: none; 
+	-moz-appearance: none; } 
+
+	/* body select.select_box option */ 
+	body select option {
+	 	padding: 0 4px; 
+	} 
+
+	/* for IE and Edge */ 
+	select::-ms-expand { 
+		display: none; 
+	} 
+
+	select:disabled::-ms-expand {
+	 	background: #f60; 
+	}
+

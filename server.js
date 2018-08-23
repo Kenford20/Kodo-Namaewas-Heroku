@@ -31,6 +31,7 @@ var playerData = {
 	chatMessage: '',
 	isTeamMessage: false,
 	spectators: [],
+	spectatorIDs: [],
 	bluePlayers: [],
 	blueIDs: [],
 	redPlayers: [],
@@ -89,18 +90,30 @@ io.sockets.on('connection', function(socket){
 		var leavingPlayerName = playerData.allPlayers[leavingPlayerIndex];
 		playerData.allPlayers.splice(leavingPlayerIndex,1);
 
+		// check if leaving player is on blue team, then remove from list
 		for(i=0;i<playerData.bluePlayers.length; i++){
 			if(playerData.bluePlayers[i] == leavingPlayerName){
 				playerData.bluePlayers.splice(i, 1);
+				io.sockets.emit('bluePlayerLeft', leavingPlayerName);
 			}
 		}
 
 		for(i=0;i<playerData.redPlayers.length; i++){
 			if(playerData.redPlayers[i] == leavingPlayerName){
 				playerData.redPlayers.splice(i, 1);
+				io.sockets.emit('redPlayerLeft', leavingPlayerName);
 			}
 		}
 
+		// check if leaving player is a spectator, then remove from list
+		for(i=0;i<playerData.spectators.length; i++){
+			if(playerData.spectators[i] == leavingPlayerName){
+				playerData.spectators.splice(i, 1);
+				io.sockets.emit('spectatorLeft', leavingPlayerName);
+			}
+		}		
+
+		// check if leaving player is a spymaster
 		if(socket.id == playerData.blueSpyID){
 			playerData.blueSpyExists = false;
 			io.sockets.emit('blueSpyLeft');
@@ -109,8 +122,6 @@ io.sockets.on('connection', function(socket){
 			playerData.redSpyExists = false;
 			io.sockets.emit('redSpyLeft');
 		}
-		io.sockets.emit('bluePlayerLeft', leavingPlayerName);
-		io.sockets.emit('redPlayerLeft', leavingPlayerName);
 
 		console.log("This player has left: " + leavingPlayerName);
 	})
@@ -118,7 +129,8 @@ io.sockets.on('connection', function(socket){
 	// team setup
 	/****************************************/
 	socket.on('playerName', function(name){
-		socketIDlist.push(socket.id);
+		//socketIDlist.push(socket.id);
+		playerData.spectatorIDs.push(socket.id);
 		playerData.allPlayers.push(name);
 		playerData.spectators.push(name);
 		console.log("spectators after entering: " + playerData.spectators);
@@ -177,6 +189,7 @@ io.sockets.on('connection', function(socket){
 
 	socket.on('red', function(clientName){
 		console.log("Player: " + clientName + " has joined red team");
+		playerData.isSpectator = false;
 		playerData.redPlayers.push(clientName);
 		playerData.redIDs.push(socket.id);
 		io.sockets.emit('redPlayer', clientName);
@@ -202,11 +215,16 @@ io.sockets.on('connection', function(socket){
 		playerData.blueSpyMaster = nameOfSpyMaster;
 		playerData.blueSpyID = socket.id;
 		io.sockets.emit('someoneBecameBlueSpy', playerData);
-		console.log("BLUE SPY ID: " + playerData.blueSpyID);
+		//console.log("BLUE SPY ID: " + playerData.blueSpyID);
 	})
 
 	socket.on('highlightBlueSpy', function(){
 		io.sockets.emit('highlightBlueSpy', playerData.blueSpyMaster);
+	})
+
+	socket.on('blueSpyChangedTeam', function(){
+		playerData.blueSpyExists = false;
+		io.sockets.emit('blueSpyChangedTeam');
 	})
 	
 	socket.on('redSpy', function(nameOfSpyMaster){
@@ -214,12 +232,18 @@ io.sockets.on('connection', function(socket){
 		playerData.redSpyMaster = nameOfSpyMaster;
 		playerData.redSpyID = socket.id;
 		io.sockets.emit('someoneBecameRedSpy', playerData);
-		console.log("RED SPY ID: " + playerData.redSpyID);
+		//console.log("RED SPY ID: " + playerData.redSpyID);
 	})
 
 	socket.on('highlightRedSpy', function(nameOfRedSpy){
 		io.sockets.emit('highlightRedSpy', playerData.redSpyMaster);
 	})
+
+	socket.on('redSpyChangedTeam', function(){
+		playerData.redSpyExists = false;
+		io.sockets.emit('redSpyChangedTeam');
+	})
+
 
 	// game has started
 	/***********************************/
@@ -405,6 +429,7 @@ io.sockets.on('connection', function(socket){
 
 		gameData.currentBoardColors = ['lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'lightgrey'];
 		gameData.gameBoardColors = [];	
+		gameData.gameWords = [],
 		gameData.turnCounter = 0;
 		gameData.isBlueTurn = false;
 		gameData.isRedTurn = false;

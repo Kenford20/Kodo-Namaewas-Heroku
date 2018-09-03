@@ -7,6 +7,8 @@ const joinRed_btn = document.querySelector("#red");
 const redSpy_btn = document.querySelector("#red-spy");
 const blueSpy_btn = document.querySelector("#blue-spy");
 const startGame_btn = document.querySelector("#start-game");
+const blueScoreValue = document.querySelector("#blue-score-number");
+const redScoreValue = document.querySelector("#red-score-number");
 const restartGame_btn = document.querySelector("#restart-game");
 const hint_btn = document.querySelector("#hint-btn");
 const submit_name = document.querySelector("#name_btn");
@@ -361,6 +363,21 @@ function gameStartSetup(){
 	}
 }
 
+// reveals the scores for both teams when game starts
+function showScores(gameData){
+	blueScoreValue.innerHTML = gameData.numBlueCards;
+	redScoreValue.innerHTML = gameData.numRedCards;
+
+	document.querySelector("#blue-score").classList.remove("hide");
+	document.querySelector("#red-score").classList.remove("hide");
+}
+
+// updates the scores whenever a card is picked
+function updateScore(gameData){
+	blueScoreValue.innerHTML = gameData.numBlueCards;
+	redScoreValue.innerHTML = gameData.numRedCards;
+}
+
 function setUpGameWords(boardWords){
 	var gameWords = gameBoard.querySelectorAll("a");
 	for(i=0;i<gameWords.length;i++)
@@ -678,7 +695,7 @@ function resetChat(){
 
 function resetWords(){
 	var gameWords = gameBoard.querySelectorAll("a");
-	for(i=0;i<gameWords.length;i++){
+	for(i=1;i<gameWords.length;i++){
 		defaultWord = "Word" + i;
 		gameWords[i].innerHTML = defaultWord;
 	}
@@ -729,6 +746,8 @@ function removePlayers(playerData){
 	document.querySelector("#red-guesser").classList.add("hide");
 	document.querySelector("#chat").classList.add("hide");
 	document.querySelector("#message").classList.remove("hide");
+	document.querySelector("#blue-score").classList.add("hide");
+	document.querySelector("#red-score").classList.add("hide");
 
 }
 
@@ -845,6 +864,7 @@ socket.on('redSpyChangedTeam', showRedSpyButton);
 
 // game started
 socket.on('gameHasStarted', updateGameStatus);
+socket.on('showScores', showScores);
 socket.on('setUpGameWords', setUpGameWords);
 socket.on('youCanSeeTheBoard', spyMasterBoard);
 socket.on('createHintBox', createHintBox);
@@ -854,6 +874,7 @@ socket.on('guessMessage', guessMessage);
 socket.on('revealHint', revealHint);
 socket.on('pickCards', pickCards);
 socket.on('showGuesser', showGuesser);
+socket.on('updateScore', updateScore);
 socket.on('revealCardColor', revealCardColor);
 socket.on('guessHasBeenMade', revealCardForSpies);
 socket.on('donePickingCards', disableEventListeners);

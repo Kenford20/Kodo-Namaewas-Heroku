@@ -75,7 +75,7 @@ io.sockets.on('connection', function(socket){
 	//console.log('socket connection: '+ socket.id);
 	socketIDlist.push(socket.id);
 		
-	//update a new player on the spectators list currently
+	//update a new player on the overall game state
 	socket.emit('allSpectators', playerData.spectators);
 	socket.emit('allBluePlayers', playerData.bluePlayers);
 	socket.emit('allRedPlayers', playerData.redPlayers);
@@ -84,6 +84,11 @@ io.sockets.on('connection', function(socket){
 	socket.emit('updateBoard', gameData);
 	socket.emit('updateGameWords', gameData);
 
+	if(gameData.gameHasStarted){
+		socket.emit('showScores', gameData);
+	}
+
+	// handling the server data and client DOM elements on disconnect
 	socket.on('disconnect', function(){
 		var leavingPlayerIndex = socketIDlist.indexOf(socket.id);
 		socketIDlist.splice(leavingPlayerIndex, 1);
@@ -279,6 +284,7 @@ io.sockets.on('connection', function(socket){
 		gameData.turnCounter++;
 		io.to(playerData.blueSpyID).emit('createHintBox', gameData);
 		io.sockets.emit('waitingForBlueSpy', gameData);
+		io.sockets.emit('showScores', gameData);
 		console.log("blue team starts");
 	})
 
@@ -290,6 +296,7 @@ io.sockets.on('connection', function(socket){
 		gameData.turnCounter++;
 		io.to(playerData.redSpyID).emit('createHintBox', gameData);
 		io.sockets.emit('waitingForRedSpy', gameData);
+		io.sockets.emit('showScores', gameData);
 		console.log("red team starts");
 	})
 
@@ -340,7 +347,6 @@ io.sockets.on('connection', function(socket){
 	})
 
 	socket.on('updateCardCount', function(colorOfCard){
-		//io.sockets.emit('showGuesser', gameData.cardSelected);		
 		gameData.clientCallCounter = 0;
 
 		if(gameData.runOnce2){
@@ -355,6 +361,7 @@ io.sockets.on('connection', function(socket){
 			else if(colorOfCard == 'yellow')
 				gameData.numYellowCards--;
 		
+			io.sockets.emit('updateScore', gameData);
 			console.log("blue: " + gameData.numBlueCards + "red: " + gameData.numRedCards + "yellow: " + gameData.numYellowCards);
 		
 			if(gameData.numBlueCards == 0){

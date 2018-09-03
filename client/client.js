@@ -695,9 +695,9 @@ function resetChat(){
 
 function resetWords(){
 	var gameWords = gameBoard.querySelectorAll("a");
-	for(i=1;i<gameWords.length;i++){
+	for(i=1;i<26;i++){
 		defaultWord = "Word" + i;
-		gameWords[i].innerHTML = defaultWord;
+		gameWords[(i-1)].innerHTML = defaultWord;
 	}
 }
 

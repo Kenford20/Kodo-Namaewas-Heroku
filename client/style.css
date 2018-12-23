@@ -361,14 +361,15 @@ header h1{
 	position:relative;
 	width:100%;
 	overflow:hidden;
-	max-height:160px;
 }
 
 #chat-box, #team-chat-box{
 	overflow-y:scroll;
+	max-height:160px;
 }
 
 #global-chat-div, #team-chat-div{
+	max-height:160px;
 }
 
 #input-box, #team-input-box{

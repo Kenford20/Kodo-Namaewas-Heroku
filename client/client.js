@@ -472,14 +472,14 @@ function startGuess(){
 
 	hintData.word = document.querySelector("#input-hint").value;
 	hintData.number = document.querySelector("select").value;
-	socket.emit('revealHint', hintData);
+	socket.emit('hintSubmitted', hintData);
 
 	document.querySelector("#input-hint").classList.add("hide");
 	document.querySelector("#hint-btn").classList.add("hide");
 	var select = document.querySelector("select");
 	select.parentNode.removeChild(select);
 
-	socket.emit('pickCards');
+	socket.emit('readyToGuess');
 }
 
 // reveals a message to all clients prompting them to guess

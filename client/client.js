@@ -281,72 +281,65 @@ function showRedSpyButton(){
 	hideElements(document.querySelector("#red-spy-message"));
 }
 
-// takes an array of numbers and shuffles the indices around
-function shuffleNumbers(array) {
-    var i = array.length;
-    var j = 0;
-    var temp;
+/* 
+****************************************************************
+************ GAME HAS NOW STARTED BELOW ************************
+****************************************************************/
+
+// takes an array of the board's card positions and shuffles the indices around
+function shuffleNumbers(cardPositions) {
+    let i = cardPositions.length;
+    let j = 0;
+    let temp;
 
     while (i--) {
     	// generates a random index to swap with
         j = Math.floor(Math.random() * (i+1));
 
         // swap randomly chosen element with current element
-        temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
+        temp = cardPositions[i];
+        cardPositions[i] = cardPositions[j];
+        cardPositions[j] = temp;
     }
-    return array;
+    return cardPositions;
 }
-
-/* 
-****************************************************************
-************ GAME HAS NOW STARTED BELOW ************************
-****************************************************************/
 
 function gameStartSetup(){
 	socket.emit('gameHasStarted');
 
 	// start game only when the two spymasters are chosen
-	if(thereIsABlueSpy && thereIsARedSpy){
-		if(gameisNotStarted){
-
-			var boardData = {
-				randomIndices: [],
-				divColors: []
-			}
-
-			var randomNumbers = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24];
-
-			shuffleNumbers(randomNumbers);
-			boardData.randomIndices = randomNumbers;
-			var randomTeamStarts = Math.floor(Math.random() * 2); // returns 0 or 1
-
-			if(randomTeamStarts == 0){
-				whichTeamStarts = cardType.blueTeamStarts;
-				socket.emit('blueTeamStarts');
-			}
-			else if(randomTeamStarts == 1){
-				whichTeamStarts = cardType.redTeamStarts;
-				socket.emit('redTeamStarts');
-			}
-			boardData.divColors = whichTeamStarts;
-
-			socket.emit('setUpBoardforSpies', boardData);
-			socket.emit('showRestartButton');
-
-			var words;
-			var possibleWords = getWordsFromFile("words.txt", words);
-			var boardWords = [];
-
-			// this is for the words
-			for(i=0;i<25;i++){
-				let randomPossibleWord = Math.floor(Math.random() * possibleWords.length);
-				boardWords.push(possibleWords[randomPossibleWord]);
-			}
-
-			socket.emit('setUpGameWords', boardWords);
+	if(thereIsABlueSpy && thereIsARedSpy && gameisNotStarted){
+		let boardData = {
+			randomIndices: [],
+			divColors: []
 		}
+		let randomNumbers = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24];
+
+		shuffleNumbers(randomNumbers);
+		boardData.randomIndices = randomNumbers;
+		let randomTeamStarts = Math.floor(Math.random() * 2); // returns 0 or 1
+
+		if(randomTeamStarts == 0){
+			boardData.divColors = cardType.blueTeamStarts;
+			socket.emit('blueTeamStarts');
+		}
+		else if(randomTeamStarts == 1){
+			boardData.divColors = cardType.redTeamStarts;
+			socket.emit('redTeamStarts');
+		}
+		socket.emit('setUpBoardforSpies', boardData);
+		socket.emit('showRestartButton');
+
+		// about 1000 words in this file, can add/remove any words you want to play with in this file
+		let possibleWords = getWordsFromFile("words.txt");
+		let boardWords = [];
+
+		// take random words from the file of words and push them to the array of 25 words for the game board
+		for(let i = 0; i < 25; i++){
+			let randomWord = Math.floor(Math.random() * possibleWords.length);
+			boardWords.push(possibleWords[randomWord]);
+		}
+		socket.emit('setUpGameWords', boardWords);
 	}
 }
 
@@ -354,9 +347,7 @@ function gameStartSetup(){
 function showScores(gameData){
 	blueScoreValue.innerHTML = gameData.numBlueCards;
 	redScoreValue.innerHTML = gameData.numRedCards;
-
-	document.querySelector("#blue-score").classList.remove("hide");
-	document.querySelector("#red-score").classList.remove("hide");
+	showElements(document.querySelector("#blue-score"), document.querySelector("#red-score"));
 }
 
 // updates the scores whenever a card is picked
@@ -366,26 +357,25 @@ function updateScore(gameData){
 }
 
 function setUpGameWords(boardWords){
-	var gameWords = gameBoard.querySelectorAll("a");
-	for(i=0;i<gameWords.length;i++)
+	let gameWords = gameBoard.querySelectorAll("a");
+	for(let i = 0; i < gameWords.length; i++)
 		gameWords[i].innerHTML = boardWords[i];
 }
 
-function getWordsFromFile(file, words){
-    var rawFile = new XMLHttpRequest();
+function getWordsFromFile(file){
+	let fileWords;
+    let rawFile = new XMLHttpRequest();
     rawFile.open("GET", file, false);
     rawFile.onreadystatechange = function (){
-        if(rawFile.readyState === 4)
-        {
-            if(rawFile.status === 200 || rawFile.status == 0)
-            {
-                var allWords = rawFile.responseText;
-                words = allWords.split('\n');
+        if(rawFile.readyState === 4){
+            if(rawFile.status === 200 || rawFile.status == 0){
+                let allWords = rawFile.responseText;
+                fileWords = allWords.split('\n');
             }
         }
     }
     rawFile.send(null);
-    return words;
+    return fileWords;
 }
 
 function updateGameStatus(){

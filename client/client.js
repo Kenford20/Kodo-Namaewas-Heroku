@@ -1,5 +1,10 @@
 window.onload=function(){
-
+	//const socket = io.connect();
+	const host = window.location.origin; 
+	console.log(host);
+	const socket = io.connect(host);
+	//const socket = io.connect('http://' + host + ":"  + 3000);
+	
 /* Global variables
 **********************************/
 const joinBlue_btn = document.querySelector("#blue");
@@ -25,15 +30,13 @@ const redWaitingMessage = document.querySelector("#red-waiting");
 const blueGuessMessage = document.querySelector("#blue-guess");
 const redGuessMessage = document.querySelector("#red-guess");
 const resetMessage = document.querySelector("#reset-message");
+// const instructionMessage = document.querySelector("#instruction"); remove all messages above for this and just modify this
 
-var spectatorList = document.querySelector("#players");
-var bluePlayerList = document.querySelector("#blue-players");
-var redPlayerList = document.querySelector("#red-players");
-var gameisNotStarted = true;
-var thereIsABlueSpy = false; 
-var thereIsARedSpy = false;
+const spectatorList = document.querySelector("#players");
+const bluePlayerList = document.querySelector("#blue-players");
+const redPlayerList = document.querySelector("#red-players");
 
-var client = {
+const client = {
 	name: '',
 	team: '',
 	spymaster: false,
@@ -43,30 +46,32 @@ var client = {
 	canGuess: false
 };
 
-var cardType = {
+const cardType = {
 	redTeamStarts: ['red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'black'],
 	blueTeamStarts: ['red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'black'],
 };
 
-//var socket = io.connect();
-var host = window.location.origin; 
-console.log(host);
-var socket = io.connect(host);
-//var socket = io.connect('http://' + host + ":"  + 3000);
-
+let gameisNotStarted = true;
+let thereIsABlueSpy = false; 
+let thereIsARedSpy = false;
 
 /* Function Definitions
 *************************************/
+function hideElements(...elements){
+	elements.map(element => element.classList.add("hide"));
+}
+
+function showElements(...elements){
+	elements.map(element => element.classList.remove("hide"));
+}
 
 // the functions below generate the HTML of each player with their respect teams to
 // the currently connected clients and also the ones that join later
 function sendNameToServer(){
-	document.querySelector("#chat").classList.remove("hide");
 	console.log("the name is " + name.value);
 	socket.emit('playerName', name.value);
 	client.name = name.value;
-	submit_name.classList.add("hide");
-	name.classList.add("hide");
+	hideElements(submit_name, name);
 }
 
 function createSpectators(spectatorData){
@@ -81,14 +86,16 @@ function createRedPlayers(redPlayerData){
 	createName(redPlayerData, redPlayerList);
 }
 
-function createName(data, elementLocation){
-	var player = document.createElement("h3");
-	var node = document.createTextNode(data + "  ");
+function createName(playerName, elementLocation){
+	let player = document.createElement("h3");
+	let node = document.createTextNode(playerName + "  ");
 	player.appendChild(node);
 	elementLocation.appendChild(player);
 	name.value = "";
 }
 
+// update functions below update joining clients' DOMs by appending the player names to their respective nodes
+// as well as the current state of the board if a round had began
 function currentSpectators(allSpectators){
 	updateCurrentPlayers(allSpectators, spectatorList);
 }
@@ -101,17 +108,17 @@ function currentRedPlayers(allRedPlayers){
 	updateCurrentPlayers(allRedPlayers, redPlayerList);
 }
 
-function updateCurrentPlayers(data, elementLocation){
-	for(i=0;i<data.length;i++){
-		var player = document.createElement("h3");
-		var node = document.createTextNode(data[i] + "  ");
+function updateCurrentPlayers(playerNames, elementLocation){
+	playerNames.map(playerName => {
+		let player = document.createElement("h3");
+		let node = document.createTextNode(playerName + "  ");
 		player.appendChild(node);
 		elementLocation.appendChild(player);
-	}
+	});
 }
 
 function updateBoard(gameData){
-	for(i=0;i<allCards.length;i++){
+	for(let i = 0; i < allCards.length; i++){
 		if(gameData.currentBoardColors[i] != 'lightgrey')
 			allCards[i].classList.add(gameData.currentBoardColors[i]);
 	}
@@ -119,8 +126,8 @@ function updateBoard(gameData){
 
 function updateGameWords(gameData){
 	if(gameData.gameHasStarted){
-		var gameWords = gameBoard.querySelectorAll("a");
-		for(i=0;i<gameWords.length;i++){
+		let gameWords = gameBoard.querySelectorAll("a");	
+		for(let i = 0; i < gameWords.length; i++){
 			gameWords[i].innerHTML = gameData.gameWords[i];
 		}
 		document.querySelector("#message").classList.add("hide");

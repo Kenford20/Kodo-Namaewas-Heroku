@@ -308,12 +308,12 @@ io.sockets.on('connection', (socket) => {
 		// tell only blue players to take their turn
 		if(gameData.isBlueTurn){
 			for(let i = 0; i < playerData.blueIDs.length; i++)
-				io.to(playerData.blueIDs[i]).emit('pickCards', gameData);
+				io.to(playerData.blueIDs[i]).emit('pickCards');
 		}
 		// otherwise tell red players to
 		else{
 			for(let i = 0; i < playerData.redIDs.length; i++)
-				io.to(playerData.redIDs[i]).emit('pickCards', gameData);
+				io.to(playerData.redIDs[i]).emit('pickCards');
 		}
 	});
 
@@ -401,8 +401,8 @@ io.sockets.on('connection', (socket) => {
 	});
 
 	socket.on('restartGame', () => {		
-		io.to(playerData.blueSpyID).emit('resetSpyBoard', gameData);
-		io.to(playerData.redSpyID).emit('resetSpyBoard', gameData);
+		io.to(playerData.blueSpyID).emit('resetSpyBoard');
+		io.to(playerData.redSpyID).emit('resetSpyBoard');
 		io.sockets.emit('restartingGame', playerData);
 		io.sockets.emit('resetTheChat');
 

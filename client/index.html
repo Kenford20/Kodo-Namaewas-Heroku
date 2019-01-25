@@ -40,7 +40,7 @@
 		<h4> <span id="blue-guess-name"> Name </span> has guessed the word <span id="blue-guess-word"> Word </span> </h4>
 	</div>
 
-	<section class="nest" id="game-board">
+	<section id="game-board">
 		<div class="card"><a href="#">Word1</a></div>
 		<div class="card"><a href="#">Word2</a></div>
 		<div class="card"><a href="#">Word3</a></div>
@@ -84,13 +84,13 @@
 	</div>
 
 	<section id="spectators">
-		<button class="btn" id="red">Join Aka Chimu</button>
-		<button class="btn" id="blue">Join Ao Chimu</button>
+		<button class="btn" id="red-join-btn">Join Aka Chimu</button>
+		<button class="btn" id="blue-join-btn">Join Ao Chimu</button>
 		<h4> Welcome! Please enter your name and select a team </h4>
 		<div id="players">
 			
 		</div>
-		<input id="name" placeholder="Enter your namae">
+		<input id="name-input" placeholder="Enter your namae">
 		<button class="btn" id="name_btn">Submit</button>
 	</section>
 
@@ -104,7 +104,7 @@
 		<h2 class="hide" id="red-wins"> SHOSHA WA . . . <span class="red-word"> AKA CHIMUDESU!!!! </span> </h2>
 	</section>
 
-	<section class="nest2" id="hint">
+	<section id="hint">
 		<h2 class="hide" id="hint-message"> The hint is <span id="hint-word">[word]</span>, There are <span id="hint-number">[number]</span> cards that go with this clue</h2>
 		<h1 class="hide" id="congrats"> YOKU YATTA!!! OMEDETO!!!!!!! </h1>
 		<button class="btn hide" id="hint-btn">Submit Hint</button>
@@ -112,15 +112,15 @@
 		<h2 class="hide" id="reset-message"> GAME HAS BEEN RESET! </h2>
 	</section>
 
-	<section class="nest3" id="chat">
-		<div class="nest4 chat-black" id="global-chat-div">
-			<div id="chat-box"> </div>		
-			<div id="input-box"> <textarea id="chat-input" rows="1" placeholder="Chat with your nakamas"></textarea> </div>
+	<section id="chat">
+		<div class="chatbox chat-black" id="global-chat-div">
+			<div class="message-box"> </div>		
+			<div id="input-box"> <textarea rows="1" placeholder="Chat with your nakamas"></textarea> </div>
 		</div>
 
-		<div class="nest4 chat-black" id="team-chat-div">
-			<div id="team-chat-box"> </div>
-			<div id="team-input-box"> <textarea id="team-chat-input" rows="1" placeholder="Chat with your chimu "></textarea> </div>
+		<div class="chatbox chat-black" id="team-chat-div">
+			<div class="message-box"> </div>
+			<div id="team-input-box"> <textarea rows="1" placeholder="Chat with your chimu "></textarea> </div>
 		</div>
 	</section>
 

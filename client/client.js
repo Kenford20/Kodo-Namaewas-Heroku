@@ -680,16 +680,10 @@ function displayChatMessage({ chatter, chatMessage, isTeamMessage }){
 // styles the client's name in the chatbox to differentiate from the other players chat message
 function highlightChatter(){
 	let chatterNames = [].slice.call(chat.querySelectorAll("span"));
+	
 	chatterNames.filter(names => names.innerHTML == client.name)
 	.map(name => name.classList.add('highlight-chatter'));
-
-	// for(let i = 0; i < chatterSpan.length; i++){
-	// 	if((chatterSpan[i].innerHTML) == client.name){
-	// 		chatterSpan[i].classList.add("highlight-chatter");
-	// 	}
-	// }
 }
-
 
 /* Restarting the game */
 function restartGame(){
@@ -737,7 +731,6 @@ function resetWords(){
 	let gameWords = [].slice.call(gameBoard.querySelectorAll("a"));
 	gameWords.map((word, index) => word.innerHTML = 'Word' + (index + 1));	
 }
-
 
 function removePlayers({ allPlayers }){
 	// reset all client data

@@ -1,432 +1,338 @@
-body{
-	margin:0;
-	padding:0;
-	background:grey;
-	display:grid;
-	font-size:15px;
+body {
+	margin: 0;
+	padding: 0;
+	background: grey;
+	display: grid;
+	font-size: 15px;
 	font-family: "Tahoma";
-}
-
-body{
 	grid-template-columns: 1fr 4fr 1fr;
 	grid-template-rows: 0.5fr 2.75fr 0.5fr 0.5fr 0.5fr 1fr;
-	/*grid-template-rows:auto;*/
+	grid-template-areas: "header header header"
+						 "blue-team gameboard red-team"
+						 "blue-team instructions red-team"
+						 "blue-team hint red-team"
+						 "spectators spectators spectators"
+						 "chat chat chat";
 }
 
-.hide{
-	display:none;
+.hide {
+	display: none;
 }
 
-.btn:hover{
-	background-color:white !important;
+.btn:hover {
+	background-color: white !important;
 }
 
 /* default color of cards */
-.nest .default{
-	border:4px solid black;
-	background-color:lightgrey;
+.nest .default {
+	border: 4px solid black;
+	background-color: lightgrey;
 }
 
 /* color of cards for guessers when clicked */
-.nest .red{
-	background-color:#db3328;
-	border: 4px solid black;
-}
+.nest .red, .nest .blue, .nest .yellow { border: 4px solid black }
 
-.nest .blue{
-	background-color:#1c64ff;
-	border: 4px solid black;
-}
-
-.nest .yellow{
-	background-color:#fff68f;
-	border: 4px solid black;	
-}
-
-.nest .black{
-	background-color:black;
-	border:2px solid grey;
-}
-
-.nest .black a{
-	color:grey;
-}
+.nest .red { background-color: #db3328 }
+.nest .blue { background-color: #1c64ff }
+.nest .yellow { background-color: #fff68f }
+.nest .black { background-color: black; border:2px solid grey }
+.nest .black a { color: grey }
 
 /* color of cards for spymasters when clicked */
-.nest .red2{
-	border:10px solid #db3328;
-	background-color:white;
-}
-
-.nest .blue2{
-	border:10px solid #1c64ff;
-	background-color:white;
-}
-
-.nest .yellow2{
-	border:10px solid #fff68f;
-	background-color:white;
-}
-
-.nest .black2{
-	border:10px solid black;
-	background-color:white;
-	color:black;
-}
+.nest .red2, .nest .blue2, .nest .yellow2, .nest .black2 { background-color: white }
+.nest .red2 { border: 10px solid #db3328 }
+.nest .blue2 { border: 10px solid #1c64ff }
+.nest .yellow2 { border: 10px solid #fff68f }
+.nest .black2 { border: 10px solid black; color: black }
 
 /* Header Styles 
 --------------------------------------------*/
-header{
-	background-color:lightgrey;
-	text-align:center;
-	grid-column: 1/4;
-	grid-row:1/2;
-	border-bottom:5px solid black;
+header {
+	grid-area: header;
+	background-color: lightgrey;
+	text-align: center;
+	border-bottom: 5px solid black;
+	padding-top: 15px;
 }
 
-header h1{
-	margin:0;
+header h1 {
+	display: inline;
+	margin: 0;
+	font-size: 36px;
 }
 
-#start-game{
-	background-color:grey;
-	padding:10px;
-	color:black;
-	width:200px;
+#start-game, #restart-game {
+	margin: 0 5px;
+	padding: 10px;
+	width: 200px;
+	border-radius: 10px;
+	position: relative;
+	top: -8px;
+}
+
+#start-game {
+	background-color: grey;
+	color: black;
 	border: 3px solid black;
-	border-radius:10px;
 }
 
-#restart-game{
-	background-color:black;
-	padding:10px;
+#restart-game {
+	background-color: black;
 	color:grey;
-	width:200px;
 	border: 3px solid grey;
-	border-radius:10px;
 }
 
-#blue-score{	
-	grid-column: 1/2;
-	grid-row:1/2;
-	text-align:center;
-	margin-top:40px;
+#blue-score, #red-score {
+	text-align: center;
+	margin-top: 40px;
 }
 
-#red-score{
-	grid-column: 3/4;
-	grid-row:1/2;
-	text-align:center;
-	margin-top:40px;
+#blue-score { grid-area: blue-score }
+#red-score { grid-area: red-score }
+
+#blue-score h4, #red-score h4 {
+	display: inline-block;
+	padding: 7px 17px;
+	border: 2px solid black;
+	border-radius: 10px;
+	margin: 0;
 }
 
-#blue-score h4{
-	display:inline-block;
-	background-color:lightblue;
-	padding:7px 17px 7px 17px;
-	border:2px solid black;
-	border-radius:10px;
-	margin:0;
-	color:#1c64ff;
+#blue-score h4 {
+	background-color: lightblue;
+	color: #1c64ff;
 }
 
-#red-score h4{
-	display:inline-block;
+#red-score h4 {
 	background-color:pink;
-	padding:7px 17px 7px 17px;
-	border:2px solid black;
-	border-radius:10px;
-	margin:0;
 	color:#db3328;
 }
 
 /* Gameboard 
 --------------------------------------------*/
-.nest{
-	background-color:black;
-	display:grid;
+#game-board {
+	grid-area: gameboard;
+	background-color: black;
+	display: grid;
 	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-	grid-template-rows: 1fr 1fr 1fr 1fr 1fr;	
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
 }
 
-.nest div{
-	border:4px solid black;
-	border-radius:10px;
-	background-color:lightgrey;
-	text-align:center;
+.card {
+	border: 4px solid black;
+	border-radius: 10px;
+	background-color: lightgrey;
+	text-align: center;
 	line-height: 80px;
-	box-sizing:border-box;
+	box-sizing: border-box;
 }
 
-.nest a{
-	color:#dbd4e7;
-	color:black;
-	text-decoration:none;
+.card a {
+	color: #dbd4e7;
+	color: black;
+	text-decoration: none;
 }
-
-.nest a:hover{
-	color:white;
-}
+.card a:hover { color: white }
 
 /* Blue Team
 --------------------------------------------*/
-#blue-team{
-	grid-column:1/2;
-	grid-row:2/span 4;
-	background-color:#1c64ff;
-	text-align:center;
-	border-right:5px solid black;
-	color:lightblue;
+#blue-team {
+	grid-area: blue-team;
+	background-color: #1c64ff;
+	text-align: center;
+	border-right: 5px solid black;
+	color: lightblue;
 }
 
-#blue-spy{
-	border:2px solid grey;
-	padding:10px;
-	color:grey;
-	background-color:lightblue;
+#blue-spy {
+	border: 2px solid grey;
+	padding: 10px;
+	color: grey;
+	background-color: lightblue;
+}
+
+#blue-spy-message, #blue-guesser {
+	text-align: center;
+	color: blue;
+	border: 3px solid black;
+	background-color: lightblue;
 }
 
 #blue-spy-message {
-	text-align:center;
-	grid-column:1/2;
-	grid-row:4/5;
-	color:blue;
-	background-color:lightblue;
-	border:3px solid black;
+	grid-column: 1/2;
+	grid-row: 4/5;
 }
 
-#blue-spy-message span{
-	color:grey;
+#blue-guesser {
+	grid-column: 1/2;
+	grid-row: 3/4;
 }
 
-#blue-guesser{
-	text-align:center;
-	grid-column:1/2;
-	grid-row:3/4;
-	color:blue;
-	background-color:lightblue;
-	border:3px solid black;
-}
-
-#blue-guess-name{
-	color:grey;
-}
-
-#blue-guess-word{
+#blue-spy-message span, #blue-guess-name, #blue-guess-word {
 	color: grey;
 }
 
 /* Red Team
 --------------------------------------------*/
-#red-team{
-	/* grid area: row start / col start / row end / col end */
-	grid-area: 2 / 3 / 5 / 4;
-	background-color:#db3328;
-	text-align:center;
-	border-left:5px solid black;
-	color:pink;
+#red-team {
+	grid-area: red-team;
+	background-color: #db3328;
+	text-align: center;
+	border-left: 5px solid black;
+	color: pink;
 }
 
-#red-spy{
-	border:2px solid grey;
-	padding:10px;
-	color:grey;
-	background-color:pink;
+#red-spy {
+	border: 2px solid grey;
+	padding: 10px;
+	color: grey;
+	background-color: pink;
+}
+
+#red-spy-message, #red-guesser {
+	text-align: center;
+	color: red;
+	background-color: pink;
+	border: 3px solid black;
 }
 
 #red-spy-message {
-	text-align:center;
-	grid-column:3/4;
-	grid-row:4/5;
-	color:red;
-	background-color:pink;
-	border:3px solid black;
+	grid-column: 3/4;
+	grid-row: 4/5;
 }
 
-#red-spy-message span{
-	color:grey;
+#red-guesser {
+	grid-column: 3/4;
+	grid-row: 3/4;
 }
 
-#red-guesser{
-	text-align:center;
-	grid-column:3/4;
-	grid-row:3/4;
-	color:red;
-	background-color:pink;
-	border:3px solid black;
-}
-
-#red-guess-name{
-	color: grey;
-}
-
-#red-guess-word{
+#red-spy-message span, #red-guess-name, #red-guess-word {
 	color:grey;
 }
 
 /* Spectators 
 --------------------------------------------*/
-#spectators{
-	grid-column:1/4;
-	grid-row:5/6;
-	background-color:green;
-	text-align:center;
+#spectators {
+	grid-column: 1/4;
+	grid-row: 5/6;
+	background-color: green;
+	text-align: center;
 	border-top: 5px solid black;
+	padding-bottom: 15px;
 }
+#spectators li { display: inline-block }
 
-#spectators li{
-	display:inline-block;
-}
-
-#red{
-	border:2px solid black;
-	padding:10px;
-	color:red;
-	border-radius:10px;
-	background-color:pink;
-	width:130px;
-}
-
-#blue{
-	border:2px solid black;
-	border-radius: 10px;
+#red-join-btn, #blue-join-btn {
+	border: 2px solid black;
 	padding: 10px;
-	color:blue;	
-	background-color:lightblue;
-	width:130px;
+	border-radius: 10px;
+	width: 130px;
+}
+#red-join-btn {
+	color: red;
+	background-color: pink;
+	float: right;
+}
+#blue-join-btn {
+	color: blue;	
+	background-color: lightblue;
+	float: left;
 }
 
-
-#name{
-	height:30px;
+#name-input {
+	height: 30px;
+	padding-left: 5px;
 }
 
-#spectators #name_btn{
-	border:2px solid black;
-	padding:10px;
-	color:green;
+#name_btn {
+	border: 2px solid black;
+	padding: 10px;
+	color: green;
 }
 
-#spectators #red{
-	float:right;	
-}
-
-#spectators #blue{
-	float:left;
-}
-
-#spectators #players h3{
-	display:inline;
-	margin-bottom:5px;
-	color:white;
+#players h3 {
+	display: inline;
+	margin-bottom: 5px;
+	color: white;
 }
 
 /* Instructions 
---------------------------------------------*/
-#instructions{
-	background-color:orange;
-	border:2px solid black;
-	text-align:center;
+--------------------------------------------*/ 
+#instructions {
+	background-color: orange;
+	border: 2px solid black;
+	text-align: center;
+	padding: 0 20px;
 }
 
-.blue-word{
-	color: #1c64ff;
-}
-
-.red-word{
-	color: #db3328;
-}
+.blue-word { color: #1c64ff }
+.red-word{ color: #db3328 }
 
 /* Chat
 --------------------------------------------*/
-.nest3{
-	background-color:black;
-	display:grid;
-	grid-template-columns: 1fr 1fr;
+#chat {
+	grid-area: chat;
+	display: flex;
+	background: white;
+	position: relative;
+	width: 100%;
+	overflow: hidden;
 }
 
-.nest4{
-	display:grid;
-	grid-template-rows:5fr 1fr;
-}
-
-.highlight-chatter{
-	color:green;
-}
-
-#chat{
-	grid-column:1/4;
-	grid-row:6/7;
-	background:lightgrey;
-	position:relative;
-	width:100%;
-	overflow:hidden;
-}
-
-#chat-box, #team-chat-box{
-	overflow-y:scroll;
-	max-height:160px;
-}
-
-#global-chat-div, #team-chat-div{
-	max-height:160px;
-}
-
-#input-box, #team-input-box{
-	width:100%;
-}
-
-#chat-input, #team-chat-input{
-	box-sizing:border-box;
-	width:100%;
-	background-color:white;
-}
-
-.chat-black{
-	border:5px solid black;
+.chatbox {
+	flex-basis: 50%;
+	display: flex;
+	flex-direction: column;
+	max-height: 160px;
+	border: 5px solid black;
 	border-radius: 10px;
 }
 
-.team-chat-blue{
-	border:5px solid #1c64ff;
-	border-radius: 10px;
+.message-box {
+	overflow-y: scroll;
+	height: 140px;
+	max-height: 160px;
 }
 
-.team-chat-red{
-	border:5px solid #db3328;
-	border-radius: 10px;
+#input-box textarea, #team-input-box textarea {
+	box-sizing: border-box;
+	width: 100%;
+	border-radius: 2px 2px 0 0;
+	background-color: rgb(233, 233, 233);
+	color: white;
 }
+#input-box, #team-input-box { width: 100% }
 
-.chat-message{
-	padding-top:0;
-	margin-top:0;
-	margin-bottom:2px;
+.team-chat-blue, .team-chat-red { border-radius: 10px }
+.team-chat-blue { border: 5px solid #1c64ff }
+.team-chat-red { border: 5px solid #db3328 }
+
+.chat-message {
+	padding-top: 0;
+	margin: 0 0 2px 0;
 }
+.highlight-chatter { color:green }
 
 /* Hints
 --------------------------------------------*/
-.nest2{
-	border:2px solid black;
-	background-color:#fff68f;
-	text-align:center;
+#hint {
+	border: 2px solid black;
+	background-color: #fff68f;
+	text-align: center;
 }
 
-#hint-word, #hint-number{
-	color:grey;
+#input-hint {
+	padding: 10px;
+	border: 2px solid black;
+	border-radius: 10px;
 }
-
-#input-hint{
-	padding:10px;
-	border:2px solid black;
-	border-radius:10px;
+#hint-btn {
+	color: purple;
+	padding: 10px;
+	border: 2px solid black;
+	border-radius: 10px;
 }
-
-#hint-btn{
-	color:purple;
-	padding:10px;
-	border:2px solid black;
-	border-radius:10px;
-}
+#hint-word, #hint-number { color: grey }
 
 /* dropdown menu with browser support*/
 body select { 
@@ -437,26 +343,17 @@ body select {
 	border: 2px solid black; 
 	border-radius: 10px; 
 	background: url("download.png") right center no-repeat; 
-	background-size:15px;
+	background-size: 15px;
 	background-color: #fff; 
 	color: purple; 
 	font-size: 12px; 
 	line-height: 16px !important; 
 	appearance: none; 
-	/* this is must */ -webkit-appearance: none; 
-	-moz-appearance: none; } 
-
-	/* body select.select_box option */ 
-	body select option {
-	 	padding: 0 4px; 
-	} 
-
-	/* for IE and Edge */ 
-	select::-ms-expand { 
-		display: none; 
-	} 
-
-	select:disabled::-ms-expand {
-	 	background: #f60; 
-	}
+	-webkit-appearance: none; 
+	-moz-appearance: none; 
+} 
+ 
+body select option { padding: 0 4px } 
+select::-ms-expand { display: none } 
+select:disabled::-ms-expand { background: #f60 }
 

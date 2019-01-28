@@ -7,17 +7,17 @@ window.onload=function(){
 	
 /* Global variables
 **********************************/
-const joinBlue_btn = document.querySelector("#blue");
-const joinRed_btn = document.querySelector("#red");
+const joinBlue_btn = document.querySelector("#blue-join-btn");
+const joinRed_btn = document.querySelector("#red-join-btn");
 const redSpy_btn = document.querySelector("#red-spy");
 const blueSpy_btn = document.querySelector("#blue-spy");
 const startGame_btn = document.querySelector("#start-game");
 const blueScoreValue = document.querySelector("#blue-score-number");
 const redScoreValue = document.querySelector("#red-score-number");
 const restartGame_btn = document.querySelector("#restart-game");
-const hint_btn = document.querySelector("#hint-btn");
-const submit_name = document.querySelector("#name_btn");
-const name = document.querySelector("#name");
+const hintInput = document.querySelector("#hint-input-container");
+const submit_name = document.querySelector("#name-btn");
+const name = document.querySelector("#name-input");
 const chat = document.querySelector("#chat");
 const chatInput = document.querySelector("#chat-input");
 const teamChatInput = document.querySelector("#team-chat-input");
@@ -125,7 +125,7 @@ function updateBoard(gameData){
 
 function updateGameWords(gameData){
 	if(gameData.gameHasStarted){
-		let gameWords = gameBoard.querySelectorAll("a");	
+		let gameWords = gameBoard.querySelectorAll("p");	
 		for(let i = 0; i < gameWords.length; i++){
 			gameWords[i].innerHTML = gameData.gameWords[i];
 		}
@@ -149,6 +149,11 @@ function joinBlueTeam(){
 			client.spymaster = false;
 			socket.emit('redSpyChangedTeam');
 		}
+		// hide spectator section for less clutter on mobile view
+		// if(window.innerWidth <= 480) {
+		// 	hideElements(document.querySelector("#spectators"));
+		// 	document.querySelector("body").style.gridTemplateRows = "100px 0px 75px 75px 50px 100px 500px 100px 50px 200px"
+		// }
 	}
 }
 
@@ -205,11 +210,10 @@ function blueSpyMaster(){
 // remove spy button if someone has selected it already and reveal message that shows who the spy is
 function removeRedSpyButton({ redSpyExists, redSpyMaster }){
 	if(redSpyExists){
-		let redSpy = document.querySelector("#red-spy-message");
 		document.querySelector("#red-spy-name").innerHTML = redSpyMaster;
 		
-		hideElements(redSpy_btn);
-		showElements(redSpy);
+		hideElements(redSpy_btn, document.querySelector("#red-spy-waiting"));
+		showElements(document.querySelector("#reveal-red-spy"));
 		thereIsARedSpy = true;
 		socket.emit('highlightRedSpy', redSpyMaster);
 	}
@@ -217,11 +221,10 @@ function removeRedSpyButton({ redSpyExists, redSpyMaster }){
 
 function removeBlueSpyButton({ blueSpyExists, blueSpyMaster }){
 	if(blueSpyExists){
-		let blueSpy = document.querySelector("#blue-spy-message");
 		document.querySelector("#blue-spy-name").innerHTML = blueSpyMaster;
 
-		hideElements(blueSpy_btn);	
-		showElements(blueSpy);
+		hideElements(blueSpy_btn, document.querySelector("#blue-spy-waiting"));
+		showElements(document.querySelector("#reveal-blue-spy"));
 		thereIsABlueSpy = true;
 		socket.emit('highlightBlueSpy', blueSpyMaster);
 	}
@@ -234,6 +237,7 @@ function highlightRedSpy(nameOfSpy){
 		if(redPlayers[i].innerHTML == (nameOfSpy + '  ')){
 			redPlayers[i].style.background = "grey";
 			redPlayers[i].style.border = "2px solid lightgrey";
+			redPlayers[i].style.padding = "5px";
 		}
 	}
 }
@@ -244,6 +248,7 @@ function highlightBlueSpy(nameOfSpy){
 		if(bluePlayers[i].innerHTML == (nameOfSpy + '  ')){
 			bluePlayers[i].style.background = "grey";
 			bluePlayers[i].style.border = "2px solid lightblue"
+			bluePlayers[i].style.padding = "5px";
 		}
 	}
 }
@@ -270,14 +275,14 @@ function removeRedPlayer(playerName){
 // need to show the spy button when a current spy leaves so that a new player can be it
 function showBlueSpyButton(){
 	client.spymaster = false;
-	showElements(blueSpy_btn);
-	hideElements(document.querySelector("#blue-spy-message"));
+	showElements(blueSpy_btn, document.querySelector("#blue-spy-waiting"));
+	hideElements(document.querySelector("#reveal-blue-spy"));
 }
 
 function showRedSpyButton(){
 	client.spymaster = false;
-	showElements(redSpy_btn);
-	hideElements(document.querySelector("#red-spy-message"));
+	showElements(redSpy_btn, document.querySelector("#red-spy-waiting"));
+	hideElements(document.querySelector("#reveal-red-spy"));
 }
 
 /* 
@@ -346,7 +351,9 @@ function gameStartSetup(){
 function showScores(gameData){
 	blueScoreValue.innerHTML = gameData.numBlueCards;
 	redScoreValue.innerHTML = gameData.numRedCards;
-	showElements(document.querySelector("#blue-score"), document.querySelector("#red-score"));
+	//showElements(document.querySelector("#blue-score"), document.querySelector("#red-score"));
+	document.querySelector("#blue-score").style.display = "inline-block";
+	document.querySelector("#red-score").style.display = "inline-block";
 }
 
 // updates the scores whenever a card is picked
@@ -356,7 +363,7 @@ function updateScore(gameData){
 }
 
 function setUpGameWords(boardWords){
-	let gameWords = gameBoard.querySelectorAll("a");
+	let gameWords = gameBoard.querySelectorAll("p");
 	for(let i = 0; i < gameWords.length; i++)
 		gameWords[i].innerHTML = boardWords[i];
 }
@@ -392,11 +399,10 @@ function spyMasterBoard(boardObject){
 
 function createHintBox({ isBlueTurn, numBlueCards, numRedCards }){
 	showElements(
-		document.querySelector("#input-hint"), 
-		document.querySelector("#hint-btn")
+		document.querySelector("#hint-input-container")
 	);
 	let selectNode = document.createElement("select");
-	document.querySelector("#hint").appendChild(selectNode);
+	document.querySelector("#hint-input-container").insertBefore(selectNode, document.querySelector("#hint-input-container").firstChild);
 	let numCards = isBlueTurn ? numBlueCards : numRedCards;
 
 	// create dropdown menu for number of guesses to the hint
@@ -450,10 +456,8 @@ function startGuess(){
 	hintData.number = document.querySelector("select").value;
 	socket.emit('hintSubmitted', hintData);
 
-	hideElements(
-		document.querySelector("#input-hint"),
-		document.querySelector("#hint-btn")
-	)
+	hideElements(hintInput)
+
 	let select = document.querySelector("select");
 	select.parentNode.removeChild(select);
 
@@ -511,13 +515,13 @@ function whichCardWasPicked(){
 function showGuesser({ isBlueTurn, isRedTurn, cardSelected, playerWhoGuessed }){
 	if(isBlueTurn){
 		document.querySelector("#blue-guess-name").innerHTML = playerWhoGuessed;
-		let wordPicked = allCards[cardSelected].querySelector("a").innerHTML
+		let wordPicked = allCards[cardSelected].querySelector("p").innerHTML
 		document.querySelector("#blue-guess-word").innerHTML = wordPicked;
 		showElements(document.querySelector("#blue-guesser"));
 	}
 	else if(isRedTurn){
 		document.querySelector("#red-guess-name").innerHTML = playerWhoGuessed;
-		let wordPicked = allCards[cardSelected].querySelector("a").innerHTML
+		let wordPicked = allCards[cardSelected].querySelector("p").innerHTML
 		document.querySelector("#red-guess-word").innerHTML = wordPicked;
 		showElements(document.querySelector("#red-guesser"));
 	}
@@ -525,8 +529,9 @@ function showGuesser({ isBlueTurn, isRedTurn, cardSelected, playerWhoGuessed }){
 
 // just changes styles for spies when a card is selected so they know what the guesses are
 function revealCardForSpies({ cardSelected, gameBoardColors }){
-	let word = allCards[cardSelected].querySelector("a");
+	let word = allCards[cardSelected].querySelector("p");
 	word.style.textDecoration = "line-through";
+	allCards[cardSelected].classList.remove('rotate');
 
 	if(gameBoardColors[cardSelected] == 'blue'){
 		allCards[cardSelected].classList.remove('blue');
@@ -544,6 +549,7 @@ function revealCardForSpies({ cardSelected, gameBoardColors }){
 		allCards[cardSelected].classList.remove('black');
 		allCards[cardSelected].classList.add('black2');
 	}
+	allCards[cardSelected].classList.add('rotate');
 }
 
 // receives the selected card from above and reveals its true color from the game board
@@ -552,6 +558,7 @@ function revealCardForSpies({ cardSelected, gameBoardColors }){
 function revealCardColor({ cardSelected, gameBoardColors, numCardsPicked, numCardsToGuess, isBlueTurn, isRedTurn }){	
 	allCards[cardSelected].classList.remove("default");
 	allCards[cardSelected].classList.add(gameBoardColors[cardSelected]);
+	allCards[cardSelected].classList.remove('rotate');
 	socket.emit('updateCardCount', gameBoardColors[cardSelected]);
 
 	if(numCardsPicked < numCardsToGuess){
@@ -571,6 +578,7 @@ function revealCardColor({ cardSelected, gameBoardColors, numCardsPicked, numCar
 			socket.emit('endTurn');
 		}
 	}
+	allCards[cardSelected].classList.add('rotate');
 }
 
 // players aren't allowed to guess/select cards during the hinting phase 
@@ -707,13 +715,10 @@ function resetSpyBoard(){
 		allCards[i].classList.remove("yellow2");
 		allCards[i].classList.remove("black2");
 
-		let word = allCards[i].querySelector("a");
-		word.style.textDecoration = "none";
+		let word = allCards[i].querySelector("p");
 	}
-	hideElements(
-		document.querySelector("#input-hint"),
-		document.querySelector("#hint-btn")
-	);
+	hideElements(hintInput);
+
 	let select = document.querySelector("select");
 	select.parentNode.removeChild(select);
 }
@@ -851,7 +856,7 @@ blueSpy_btn.addEventListener("click", blueSpyMaster);
 redSpy_btn.addEventListener("click", redSpyMaster);
 startGame_btn.addEventListener("click", gameStartSetup);
 restartGame_btn.addEventListener("click", restartGame);
-hint_btn.addEventListener("click", startGuess);
+document.querySelector("#hint-btn").addEventListener("click", startGuess);
 chatInput.addEventListener("keyup", chatEntered);
 teamChatInput.addEventListener("keyup", teamChatEntered);
 

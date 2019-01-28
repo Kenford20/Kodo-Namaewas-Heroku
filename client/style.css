@@ -4,8 +4,8 @@ body {
 	background: grey;
 	display: grid;
 	font-size: 15px;
-	font-family: "Tahoma";
-	grid-template-columns: 1fr 4fr 1fr;
+	font-family: "Tahoma", sans-serif;
+	grid-template-columns: 20% 60% 20%;
 	grid-template-rows: 0.5fr 2.75fr 0.5fr 0.5fr 0.5fr 1fr;
 	grid-template-areas: "header header header"
 						 "blue-team gameboard red-team"
@@ -14,6 +14,27 @@ body {
 						 "spectators spectators spectators"
 						 "chat chat chat";
 }
+
+@media only screen and (max-width: 480px) {
+	body {
+		grid-template-columns: 100%;
+		grid-template-rows: 100px 120px 75px 75px 50px minmax(110px, 1fr) 50px 400px 50px minmax(110px, 1fr) 50px 200px;
+		grid-template-areas: "header"
+							"spectators"
+							"instructions"
+							"hint"
+							"blue-spy"
+							"blue-team"
+							"blue-guesser"
+							"gameboard"
+							"red-guesser"
+							"red-team"
+							"red-spy"
+							"chat";
+		font-size: 12px;
+	}
+}
+
 
 .hide {
 	display: none;
@@ -24,26 +45,27 @@ body {
 }
 
 /* default color of cards */
-.nest .default {
+#game-board .default {
 	border: 4px solid black;
 	background-color: lightgrey;
 }
 
 /* color of cards for guessers when clicked */
-.nest .red, .nest .blue, .nest .yellow { border: 4px solid black }
+#game-board .red, #game-board .blue, #game-board .yellow { border: 4px solid black }
 
-.nest .red { background-color: #db3328 }
-.nest .blue { background-color: #1c64ff }
-.nest .yellow { background-color: #fff68f }
-.nest .black { background-color: black; border:2px solid grey }
-.nest .black a { color: grey }
+#game-board .red { background-color: #db3328 }
+#game-board .blue { background-color: #1c64ff }
+#game-board .yellow { background-color: #fff68f }
+#game-board .black { background-color: black; border:2px solid grey }
+#game-board .black p { color: grey }
+
 
 /* color of cards for spymasters when clicked */
-.nest .red2, .nest .blue2, .nest .yellow2, .nest .black2 { background-color: white }
-.nest .red2 { border: 10px solid #db3328 }
-.nest .blue2 { border: 10px solid #1c64ff }
-.nest .yellow2 { border: 10px solid #fff68f }
-.nest .black2 { border: 10px solid black; color: black }
+#game-board .red2, #game-board .blue2, #game-board .yellow2, #game-board .black2 { background-color: white }
+#game-board .red2 { border: 10px solid #db3328 }
+#game-board .blue2 { border: 10px solid #1c64ff }
+#game-board .yellow2 { border: 10px solid #fff68f }
+#game-board .black2 { border: 10px solid black; color: black }
 
 /* Header Styles 
 --------------------------------------------*/
@@ -54,11 +76,13 @@ header {
 	border-bottom: 5px solid black;
 	padding-top: 15px;
 }
-
 header h1 {
 	display: inline;
 	margin: 0;
 	font-size: 36px;
+}
+@media only screen and (max-width: 480px) {
+	header h1 { font-size: 20px; display: block }
 }
 
 #start-game, #restart-game {
@@ -69,6 +93,13 @@ header h1 {
 	position: relative;
 	top: -8px;
 }
+@media only screen and (max-width: 480px) {
+	#start-game, #restart-game { 
+		width: 120px; 
+		font-size: 12px;
+		top: 8px; 
+	}
+}
 
 #start-game {
 	background-color: grey;
@@ -78,17 +109,18 @@ header h1 {
 
 #restart-game {
 	background-color: black;
-	color:grey;
+	color: grey;
 	border: 3px solid grey;
 }
 
 #blue-score, #red-score {
 	text-align: center;
-	margin-top: 40px;
 }
-
-#blue-score { grid-area: blue-score }
-#red-score { grid-area: red-score }
+@media only screen and (max-width: 480px) {
+	#blue-score, #red-score {
+		margin-right: 15px;
+	}
+}
 
 #blue-score h4, #red-score h4 {
 	display: inline-block;
@@ -117,22 +149,32 @@ header h1 {
 	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 	grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
 }
+@media only screen and (max-width: 480px) {
+	#game-board {
+		border: 5px solid black;
+	}
+}
 
 .card {
 	border: 4px solid black;
 	border-radius: 10px;
 	background-color: lightgrey;
-	text-align: center;
-	line-height: 80px;
-	box-sizing: border-box;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	transition: -webkit-transform 1s;
+}
+.card:hover {
+	cursor:pointer;
 }
 
-.card a {
-	color: #dbd4e7;
-	color: black;
-	text-decoration: none;
+.rotate {
+	transform: rotateY(360deg);
 }
-.card a:hover { color: white }
+
+@media only screen and (max-width: 480px) {
+	.card { max-width: 85px }
+}
 
 /* Blue Team
 --------------------------------------------*/
@@ -142,6 +184,7 @@ header h1 {
 	text-align: center;
 	border-right: 5px solid black;
 	color: lightblue;
+	overflow-wrap: break-word;
 }
 
 #blue-spy {
@@ -153,25 +196,42 @@ header h1 {
 
 #blue-spy-message, #blue-guesser {
 	text-align: center;
-	color: blue;
 	border: 3px solid black;
 	background-color: lightblue;
 }
 
 #blue-spy-message {
+	color: blue;
 	grid-column: 1/2;
 	grid-row: 4/5;
 }
+@media only screen and (max-width: 480px) {
+	#blue-spy-message {
+		grid-area: blue-spy;
+	}
+}
 
 #blue-guesser {
+	color: grey;
 	grid-column: 1/2;
 	grid-row: 3/4;
 }
-
-#blue-spy-message span, #blue-guess-name, #blue-guess-word {
-	color: grey;
+@media only screen and (max-width: 480px) {
+	#blue-guesser {
+		grid-area: blue-guesser;
+	}
 }
 
+#blue-spy-message span { color: black }
+#blue-guess-name, #blue-guess-word { color: blue }
+
+@media only screen and (max-width: 480px) {
+	#blue-team h1 { display: inline-block }
+	#blue-spy { margin-left: 10px } 
+
+	#blue-players { text-align: left }
+	#blue-players h3 { margin: 5px 10px; display: inline-block; }
+}
 /* Red Team
 --------------------------------------------*/
 #red-team {
@@ -180,6 +240,11 @@ header h1 {
 	text-align: center;
 	border-left: 5px solid black;
 	color: pink;
+	overflow-wrap: break-word;
+}
+@media only screen and (max-width: 480px) {
+	#red-team h1 { display: inline-block }
+	#red-spy { margin-left: 10px } 
 }
 
 #red-spy {
@@ -191,33 +256,49 @@ header h1 {
 
 #red-spy-message, #red-guesser {
 	text-align: center;
-	color: red;
 	background-color: pink;
 	border: 3px solid black;
 }
 
 #red-spy-message {
+	color: red;
 	grid-column: 3/4;
 	grid-row: 4/5;
 }
+@media only screen and (max-width: 480px) {
+	#red-spy-message {
+		grid-area: red-spy;
+	}
+}
 
 #red-guesser {
+	color: grey;
 	grid-column: 3/4;
 	grid-row: 3/4;
 }
+@media only screen and (max-width: 480px) {
+	#red-guesser {
+		grid-area: red-guesser;
+	}
+}
 
-#red-spy-message span, #red-guess-name, #red-guess-word {
-	color:grey;
+#red-spy-message span { color: black }
+#red-guess-name, #red-guess-word { color: red }
+
+@media only screen and (max-width: 480px) {
+	#red-team h1 { display: inline-block }
+	#red-spy { margin-left: 10px } 
+
+	#red-players { text-align: left }
+	#red-players h3 { margin: 5px 10px; display: inline-block; }
 }
 
 /* Spectators 
 --------------------------------------------*/
 #spectators {
-	grid-column: 1/4;
-	grid-row: 5/6;
+	grid-area: spectators;
 	background-color: green;
 	text-align: center;
-	border-top: 5px solid black;
 	padding-bottom: 15px;
 }
 #spectators li { display: inline-block }
@@ -244,7 +325,7 @@ header h1 {
 	padding-left: 5px;
 }
 
-#name_btn {
+#name-btn {
 	border: 2px solid black;
 	padding: 10px;
 	color: green;
@@ -259,6 +340,7 @@ header h1 {
 /* Instructions 
 --------------------------------------------*/ 
 #instructions {
+	grid-area: instructions;
 	background-color: orange;
 	border: 2px solid black;
 	text-align: center;
@@ -316,15 +398,20 @@ header h1 {
 /* Hints
 --------------------------------------------*/
 #hint {
+	grid-area: hint;
 	border: 2px solid black;
 	background-color: #fff68f;
-	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0 20px;
 }
 
 #input-hint {
 	padding: 10px;
 	border: 2px solid black;
 	border-radius: 10px;
+	width: 100px;
 }
 #hint-btn {
 	color: purple;
@@ -356,4 +443,3 @@ body select {
 body select option { padding: 0 4px } 
 select::-ms-expand { display: none } 
 select:disabled::-ms-expand { background: #f60 }
-

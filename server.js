@@ -78,11 +78,15 @@ io.sockets.on('connection', (socket) => {
 	socket.emit('allSpectators', playerData.spectators);
 	socket.emit('allBluePlayers', playerData.bluePlayers);
 	socket.emit('allRedPlayers', playerData.redPlayers);
-	socket.emit('nameOfBlueSpy', playerData);
-	socket.emit('nameOfRedSpy', playerData);
 	socket.emit('updateBoard', gameData);
 	socket.emit('updateGameWords', gameData);
 
+	if(gameData.blueSpyExists) {
+		socket.emit('nameOfBlueSpy', playerData);
+	}
+	if(gameData.redSpyExists) {
+		socket.emit('nameOfRedSpy', playerData);
+	}
 	if(gameData.gameHasStarted){
 		socket.emit('showScores', gameData);
 	};
@@ -91,8 +95,11 @@ io.sockets.on('connection', (socket) => {
 	socket.on('disconnect', () => {
 		const { allPlayers, bluePlayers, redPlayers, spectators, blueSpyID, redSpyID } = playerData;
 
+		// issue here: leavingplayerindex for the socket id list is not going to match to the allplayers list
+		// someone who joins first may enter their name after someone who joined next (ie: their socketid will be the first index while their allplayers index will not be the first)
+		// need to somehow match their socket id to the name they enter 
 		let leavingPlayerIndex = socketIDlist.indexOf(socket.id);
-		socketIDlist.splice(leavingPlayerIndex, 1);
+		socketIDlist.splice(leavingPlayerIndex, 1);	
 		let leavingPlayerName = allPlayers[leavingPlayerIndex];
 		allPlayers.splice(leavingPlayerIndex,1);
 

@@ -3,7 +3,7 @@
 Play this table-top card game across multiple devices with your friends on a shared board!
 Just open a browser and type in the URL(www.weebcodenames.online) while your friends are connected.
 
-*insert img of website
+* 
 
 ## Objective: The goal of the game is for the guessers of each team to correctly guess all of their team's cards before the other team.
 
@@ -32,6 +32,23 @@ Just open a browser and type in the URL(www.weebcodenames.online) while your fri
     4. If the card is a neutral card, that team's turn is ended (even if there are more remaining cards that can be selecting that turn)
     5. If the card is your team's color, you are able to select another card (if your number of guesses is more than 1 of course) Otherwise, your turn ends because you chose your enemy team's card, which helps them get closer to winning! :( So take your time with your guesses! Also, you can collaborate with your guessing teammates and discuss which words you have in mind to be selected
     *insert img of chatboxes
+* For a more official overview of the rules, visit [here!](https://en.wikipedia.org/wiki/Codenames_(board_game))
+    
+### *How to Win*
+The winner is the first team to have all their team's color cards selected by the guessers. Since this is a turn based game, spymasters, choose your hints wisely so that your guessers can have a better opportunity to win faster! The game also ends if the assassin card(black) is chosen, the team that selected it loses of course(so remember to avoid any hints that may relate to it in anyway, spymasters)!
+
+### Mobile Responsive - Grab your phones and play with your friends now!
+
+
+### Technologies used
+* A Node server runs in the back end with the help of Express.js library to easily set up a web server
+* Node pairs with Socket.io, a JavaScript library for real-time web applications, to handle server-side communication with connected clients
+* HTML and CSS for the front end view
+* Vanilla JavaScript to handle client side DOM events 
+
+### License
+MIT © [Kenny Zhou](https://github.com/kenford20)
+
     
     
     

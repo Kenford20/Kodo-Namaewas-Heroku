@@ -14,7 +14,7 @@ Just open a browser and type in the URL(www.weebcodenames.online) while your fri
 * Once four or more players are connected, click the `Gemu o Hajimeru` button to start a match
 * When a match has starts, a set of 25 randomly generated words will appear on the 5x5 board of cards
 * The board consists of 17 team color cards (red/blue, starting team has 9, other has 8), 7 neutral cards (yellow) and 1 assassin card (black)
-![codenames-chat](https://user-images.githubusercontent.com/41027303/52196359-9039fb80-2829-11e9-8928-1f8ba9545930.png)
+![codenames-board](https://user-images.githubusercontent.com/41027303/52196543-3980f180-282a-11e9-8b02-1e00393f9640.png)
 
 ### *Game Rules:*
 * A random team will be chosen to start
@@ -31,7 +31,8 @@ Just open a browser and type in the URL(www.weebcodenames.online) while your fri
     3. If the card is the assassin card, the team that selected it loses!
     4. If the card is a neutral card, that team's turn is ended (even if there are more remaining cards that can be selecting that turn)
     5. If the card is your team's color, you are able to select another card (if your number of guesses is more than 1 of course) Otherwise, your turn ends because you chose your enemy team's card, which helps them get closer to winning! :( So take your time with your guesses! Also, you can collaborate with your guessing teammates and discuss which words you have in mind to be selected
-    *insert img of chatboxes
+    ![codenames-chat](https://user-images.githubusercontent.com/41027303/52196359-9039fb80-2829-11e9-8928-1f8ba9545930.png)
+
 * For a more official overview of the rules, visit [here!](https://en.wikipedia.org/wiki/Codenames_(board_game))
     
 ### *How to Win*

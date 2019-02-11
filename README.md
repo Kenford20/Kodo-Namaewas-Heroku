@@ -47,7 +47,7 @@ The winner is the first team to have all their team's color cards selected by th
 ### *Mobile Responsive - Grab your phones and play with your friends now!*
 ![codenames-mobile](https://user-images.githubusercontent.com/41027303/52195045-37b42f80-2824-11e9-8c8c-ec2b4568144c.png) 
 
-### *Technologies used: *
+### *Technologies used:*
 * A Node server runs in the back end with the help of Express.js library to easily set up a web server
 * Node pairs with Socket.io, a JavaScript library for real-time web applications, to handle server-side communication with connected clients
 * HTML and CSS for the front end view

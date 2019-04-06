@@ -1,19 +1,15 @@
 /* Express setup
 **********************************/
-
-// imports the npm module that is being used aka express here
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
 const port = process.env.PORT || 3000;  //heroku port or default port 3000
 
-//app.use('/client', express.static(__dirname + '/client'));
 app.use(express.static('client'));
 
 // routes
 app.get('/', (req,res) => {
 	res.sendFile(__dirname + '/client/index.html');
-	// res.render("index");
 });
 
 server.listen(port, () => {
@@ -78,18 +74,20 @@ io.sockets.on('connection', (socket) => {
 	socket.emit('allSpectators', playerData.spectators);
 	socket.emit('allBluePlayers', playerData.bluePlayers);
 	socket.emit('allRedPlayers', playerData.redPlayers);
-	socket.emit('updateBoard', gameData);
-	socket.emit('updateGameWords', gameData);
 
-	if(gameData.blueSpyExists) {
+	if(gameData.gameHasStarted) {
+		socket.emit('updateBoard', gameData);
+		socket.emit('updateGameWords', gameData);
+		socket.emit('showScores', gameData);
+	}
+
+	if(playerData.blueSpyExists) {
+		console.log('updating client on spy');
 		socket.emit('nameOfBlueSpy', playerData);
 	}
-	if(gameData.redSpyExists) {
+	if(playerData.redSpyExists) {
 		socket.emit('nameOfRedSpy', playerData);
 	}
-	if(gameData.gameHasStarted){
-		socket.emit('showScores', gameData);
-	};
 	
 	// handling the server data and client DOM elements on disconnect
 	socket.on('disconnect', () => {
@@ -119,11 +117,11 @@ io.sockets.on('connection', (socket) => {
 
 		// check if leaving player is a spymaster
 		if(socket.id == blueSpyID){
-			blueSpyExists = false;
+			playerData.blueSpyExists = false;
 			io.sockets.emit('blueSpyLeft');
 		}
 		else if(socket.id == redSpyID){
-			redSpyExists = false;
+			playerData.redSpyExists = false;
 			io.sockets.emit('redSpyLeft');
 		}
 		console.log("This player has left: " + leavingPlayerName);

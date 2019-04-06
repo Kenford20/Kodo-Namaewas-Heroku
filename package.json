@@ -4,7 +4,8 @@
   "description": "code names",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "cd client && webpack && cd .. && node server.js",
+    "build": "cd client && webpack"
   },
   "dependencies": {
     "express": "^4.16.3",

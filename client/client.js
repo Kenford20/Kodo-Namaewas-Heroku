@@ -1,10 +1,12 @@
 window.onload=function(){
-	//const socket = io.connect();
 	const host = window.location.origin; 
-	console.log(host);
 	const socket = io.connect(host);
-	//const socket = io.connect('http://' + host + ":"  + 3000);
-	
+
+	/* module imports */
+	const nameHandlers = require('./player-setup/name-handlers');
+	const appendToDOM = nameHandlers.appendToDOM;
+	const updateCurrentPlayers = nameHandlers.updateCurrentPlayers;
+
 /* Global variables
 **********************************/
 const joinBlue_btn = document.querySelector("#blue-join-btn");
@@ -12,12 +14,13 @@ const joinRed_btn = document.querySelector("#red-join-btn");
 const redSpy_btn = document.querySelector("#red-spy");
 const blueSpy_btn = document.querySelector("#blue-spy");
 const startGame_btn = document.querySelector("#start-game");
+const restartGame_btn = document.querySelector("#restart-game");
+const submitName_btn = document.querySelector("#name-btn");
+
 const blueScoreValue = document.querySelector("#blue-score-number");
 const redScoreValue = document.querySelector("#red-score-number");
-const restartGame_btn = document.querySelector("#restart-game");
 const hintInput = document.querySelector("#hint-input-container");
-const submit_name = document.querySelector("#name-btn");
-const name = document.querySelector("#name-input");
+const nameInput = document.querySelector("#name-input");
 const chat = document.querySelector("#chat");
 const chatInput = document.querySelector("#chat-input");
 const teamChatInput = document.querySelector("#team-chat-input");
@@ -25,6 +28,7 @@ const chatBox = document.querySelector("#global-message-box");
 const teamChatBox = document.querySelector("#team-message-box");
 const gameBoard = document.querySelector("#game-board");
 const allCards = document.querySelectorAll(".card");
+
 const blueWaitingMessage = document.querySelector("#blue-waiting");
 const redWaitingMessage = document.querySelector("#red-waiting");
 const blueGuessMessage = document.querySelector("#blue-guess");
@@ -67,53 +71,10 @@ function showElements(...elements){
 // the functions below generate the HTML of each player with their respect teams to
 // the currently connected clients and also the ones that join later
 function sendNameToServer(){
-	console.log("the name is " + name.value);
-	socket.emit('playerName', name.value);
-	client.name = name.value;
-	hideElements(submit_name, name);
-}
-
-function createSpectators(spectatorData){
-	createName(spectatorData, spectatorList);
-}
-
-function createBluePlayers(bluePlayerData){
-	createName(bluePlayerData, bluePlayerList);
-}
-
-function createRedPlayers(redPlayerData){
-	createName(redPlayerData, redPlayerList);
-}
-
-function createName(playerName, elementLocation){
-	let player = document.createElement("h3");
-	let node = document.createTextNode(playerName + "  ");
-	player.appendChild(node);
-	elementLocation.appendChild(player);
-	name.value = "";
-}
-
-// update functions below update joining clients' DOMs by appending the player names to their respective nodes
-// as well as the current state of the board if a round had began
-function currentSpectators(allSpectators){
-	updateCurrentPlayers(allSpectators, spectatorList);
-}
-
-function currentBluePlayers(allBluePlayers){
-	updateCurrentPlayers(allBluePlayers, bluePlayerList);
-}
-
-function currentRedPlayers(allRedPlayers){
-	updateCurrentPlayers(allRedPlayers, redPlayerList);
-}
-
-function updateCurrentPlayers(playerNames, elementLocation){
-	playerNames.map(playerName => {
-		let player = document.createElement("h3");
-		let node = document.createTextNode(playerName + "  ");
-		player.appendChild(node);
-		elementLocation.appendChild(player);
-	});
+	console.log("the name is " + nameInput.value);
+	socket.emit('playerName', nameInput.value);
+	client.name = nameInput.value;
+	hideElements(submitName_btn, nameInput);
 }
 
 function updateBoard(gameData){
@@ -344,6 +305,8 @@ function gameStartSetup(){
 			boardWords.push(possibleWords[randomWord]);
 		}
 		socket.emit('setUpGameWords', boardWords);
+	} else {
+		alert('You need atleast 4 players to play, 2 Supaimasutas and 2 guessers!');
 	}
 }
 
@@ -761,7 +724,7 @@ function removePlayers({ allPlayers }){
 	showElements(
 		blueSpy_btn,
 		redSpy_btn,
-		submit_name,
+		submitName_btn,
 		name,
 		resetMessage,
 		document.querySelector("#message")
@@ -792,22 +755,22 @@ function removePlayers({ allPlayers }){
 
 /* Sockets
 **************************************/
-socket.on('playerNames', createSpectators);
+socket.on('playerNames', (spectatorName) => appendToDOM(spectatorName, spectatorList));
 socket.on('displayChatMessage', displayChatMessage);
 socket.on('displayTeamChat', displayChatMessage);
 socket.on('showClientChatter', highlightChatter);
 // updating new players who joined later than others
-socket.on('allSpectators', currentSpectators);
-socket.on('allBluePlayers', currentBluePlayers);
-socket.on('allRedPlayers', currentRedPlayers);
+socket.on('allSpectators', (spectators) => updateCurrentPlayers(spectators, spectatorList));
+socket.on('allBluePlayers', (bluePlayers) => updateCurrentPlayers(bluePlayers, bluePlayerList));
+socket.on('allRedPlayers', (redPlayers) => updateCurrentPlayers(redPlayers,  redPlayerList));
 socket.on('nameOfBlueSpy', removeBlueSpyButton);
 socket.on('nameOfRedSpy', removeRedSpyButton);
 socket.on('updateBoard', updateBoard);
 socket.on('updateGameWords', updateGameWords);
 
 // move the clients' name to their respective teams
-socket.on('bluePlayer', createBluePlayers);
-socket.on('redPlayer', createRedPlayers);
+socket.on('bluePlayer', (bluePlayerName) => appendToDOM(bluePlayerName, bluePlayerList));
+socket.on('redPlayer', (redPlayerName) => appendToDOM(redPlayerName, redPlayerList));
 socket.on('removeSpectator', removeSpectator);
 socket.on('bluePlayerLeft', removeBluePlayer);
 socket.on('redPlayerLeft', removeRedPlayer);
@@ -849,7 +812,7 @@ socket.on('newBoard', newBoard);
 
 /* Event Listeners
 ***********************************/
-submit_name.addEventListener("click", sendNameToServer);
+submitName_btn.addEventListener("click", sendNameToServer);
 joinBlue_btn.addEventListener("click", joinBlueTeam);
 joinRed_btn.addEventListener("click", joinRedTeam);
 blueSpy_btn.addEventListener("click", blueSpyMaster);

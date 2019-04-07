@@ -2,13 +2,9 @@ window.onload=function(){
 	const host = window.location.origin; 
 	const socket = io.connect(host);
 
-	/* module imports */
-	const nameHandlers = require('./player-setup/name-handlers');
-	const appendToDOM = nameHandlers.appendToDOM;
-	const updateCurrentPlayers = nameHandlers.updateCurrentPlayers;
-
-/* Global variables
-**********************************/
+/*
+	Global variables
+*/
 const joinBlue_btn = document.querySelector("#blue-join-btn");
 const joinRed_btn = document.querySelector("#red-join-btn");
 const redSpy_btn = document.querySelector("#red-spy");
@@ -42,7 +38,7 @@ const redPlayerList = document.querySelector("#red-players");
 const client = {
 	name: '',
 	team: '',
-	spymaster: false,
+	isSpymaster: false,
 	yourTurn: false,
 	teamJoinCounter: 0,
 	isOnATeam: false,
@@ -55,100 +51,120 @@ const cardType = {
 };
 
 let gameisNotStarted = true;
-let thereIsABlueSpy = false; 
-let thereIsARedSpy = false;
+let bothSpiesExist = false;
 
-/* Function Definitions
-*************************************/
+/* 
+	MODULE IMPORTS
+*/
+const updateHandlers = require('./functions/update-handlers');
+let UPDATE_CURRENT_PLAYERS = updateHandlers.updateCurrentPlayers;
+let UPDATE_BOARD = updateHandlers.updateBoard;
+let UPDATE_GAME_WORDS = updateHandlers.updateGameWords;
+
+const nameHandlers = require('./functions/player-setup/name-handlers');
+let SEND_NAME_TO_SERVER = nameHandlers.sendNameToServer;
+let APPEND_TO_DOM = nameHandlers.appendToDOM;
+let REMOVE_FROM_DOM = nameHandlers.removeFromDOM;
+
+const teamHandlers = require('./functions/team-setup/team-handlers');
+let HANDLE_JOIN_TEAM = teamHandlers.handleJoinTeam;
+
+
+/* 
+	EVENT LISTENERS
+*/
+submitName_btn.addEventListener("click", () => {
+	SEND_NAME_TO_SERVER(socket, 'newPlayerJoined', nameInput.value);
+	client.name = nameInput.value;
+	hideElements(submitName_btn, nameInput);
+});
+
+joinBlue_btn.addEventListener("click", () => {
+	if(client.team != 'blue' && client.name != '') {
+		HANDLE_JOIN_TEAM(socket, gameisNotStarted, 'blue', client);
+		console.log(client);
+	}
+});
+
+joinRed_btn.addEventListener("click", () => {
+	if(client.team != 'red' && client.name != '') {
+		HANDLE_JOIN_TEAM(socket, gameisNotStarted, 'red', client);
+		console.log(client);
+	}
+});
+
+blueSpy_btn.addEventListener("click", blueSpyMaster);
+redSpy_btn.addEventListener("click", redSpyMaster);
+startGame_btn.addEventListener("click", gameStartSetup);
+restartGame_btn.addEventListener("click", restartGame);
+document.querySelector("#hint-btn").addEventListener("click", startGuess);
+chatInput.addEventListener("keyup", chatEntered);
+teamChatInput.addEventListener("keyup", teamChatEntered);
+
+// add a click listener to all cards
+for(let i = 0; i < allCards.length; i++)
+	allCards[i].addEventListener("click", whichCardWasPicked);
+
 function hideElements(...elements){
-	elements.map(element => element.classList.add("hide"));
+	elements.map(element => {
+		if(element)
+			element.classList.add("hide");
+	});
 }
 
 function showElements(...elements){
-	elements.map(element => element.classList.remove("hide"));
+	elements.map(element => {
+		if(element)
+			element.classList.remove("hide");
+	});
 }
 
-// the functions below generate the HTML of each player with their respect teams to
-// the currently connected clients and also the ones that join later
-function sendNameToServer(){
-	console.log("the name is " + nameInput.value);
-	socket.emit('playerName', nameInput.value);
-	client.name = nameInput.value;
-	hideElements(submitName_btn, nameInput);
-}
+/* 
+	SOCKET LISTENERS
+*/
+socket.on('add new player', (spectatorName) => {
+	APPEND_TO_DOM(spectatorName, spectatorList)
+});
 
-function updateBoard(gameData){
-	for(let i = 0; i < allCards.length; i++){
-		if(gameData.currentBoardColors[i] != 'lightgrey')
-			allCards[i].classList.add(gameData.currentBoardColors[i]);
-	}
-}
+socket.on('add blue player', (bluePlayerName) => {
+	APPEND_TO_DOM(bluePlayerName, bluePlayerList)
+});
 
-function updateGameWords(gameData){
-	if(gameData.gameHasStarted){
-		let gameWords = gameBoard.querySelectorAll("p");	
-		for(let i = 0; i < gameWords.length; i++){
-			gameWords[i].innerHTML = gameData.gameWords[i];
-		}
-		document.querySelector("#message").classList.add("hide");
-	}
-}
+socket.on('add red player', (redPlayerName) => {
+	APPEND_TO_DOM(redPlayerName, redPlayerList)
+});
 
-// you can join a team if game has not started yet
-// you cannot join a team that you're already on
-// you cannot join a team unless you have a name
-function joinBlueTeam(){
-	if(gameisNotStarted && client.name != '' && client.team != 'blue'){
-		socket.emit('blue', client.name);
-		client.team = 'blue';
-		client.teamJoinCounter++;
-		// style team chat box border to blue
-		document.querySelector("#team-chat-div").classList.remove("chat-black");
-		document.querySelector("#team-chat-div").classList.remove("team-chat-red");
-		document.querySelector("#team-chat-div").classList.add("team-chat-blue");
-		if(client.spymaster == true){
-			client.spymaster = false;
-			socket.emit('redSpyChangedTeam');
-		}
-		// hide spectator section for less clutter on mobile view
-		// if(window.innerWidth <= 480) {
-		// 	hideElements(document.querySelector("#spectators"));
-		// 	document.querySelector("body").style.gridTemplateRows = "100px 0px 75px 75px 50px 100px 500px 100px 50px 200px"
-		// }
-	}
-}
+socket.on('update players for new connection', ({ spectators, bluePlayers, redPlayers }) => {
+	UPDATE_CURRENT_PLAYERS(spectators, spectatorList);
+	UPDATE_CURRENT_PLAYERS(bluePlayers, bluePlayerList);
+	UPDATE_CURRENT_PLAYERS(redPlayers,  redPlayerList);
+});
 
-function joinRedTeam(){
-	if(gameisNotStarted && client.name != '' && client.team != 'red'){
-		socket.emit('red', client.name);
-		client.team = 'red';
-		client.teamJoinCounter++;
-		// style team chat box border to red
-		document.querySelector("#team-chat-div").classList.remove("chat-black");
-		document.querySelector("#team-chat-div").classList.remove("team-chat-blue");
-		document.querySelector("#team-chat-div").classList.add("team-chat-red");
-		if(client.spymaster == true){
-			client.spymaster = false;
-			socket.emit('blueSpyChangedTeam');
-		}
-	}
-}
+socket.on('bothSpiesExist', (doBothSpiesExist) => {
+	bothSpiesExist = doBothSpiesExist;
+});
 
-// take your name out of the spectator list once you join a team
-function removeSpectator(playerName){
-	let spectators 	= spectatorList.querySelectorAll("h3");
-	for(let i = 0; i < spectators.length; i++){
-		if(spectators[i].innerHTML == (playerName + '  '))
-			spectatorList.removeChild(spectators[i]);
-	}
+socket.on('removeSpectator', removeSpectator);
+socket.on('spectatorLeft', removeSpectator);
+
+socket.on('bluePlayerLeft', (bluePlayer) => {
+	REMOVE_FROM_DOM(bluePlayer, bluePlayerList);
+});
+
+socket.on('redPlayerLeft', (redPlayer) => {
+	REMOVE_FROM_DOM(redPlayer, redPlayerList);
+});
+
+function removeSpectator(spectatorName){
+	REMOVE_FROM_DOM(spectatorName, spectatorList);
 	console.log(client.name + " is on a team: " + client.isOnATeam);
 
 	// handles team changing of clients (you're switching teams if counter > 1)
-	if(client.teamJoinCounter > 1 && client.name == playerName){
+	if(client.teamJoinCounter > 1 && client.name == spectatorName){
 		if(client.team == "red")
-			socket.emit('removeFromBlue', playerName);
-		else if(client.team == "blue" && client.name == playerName)
-			socket.emit('removeFromRed', playerName);
+			socket.emit('removeFromBlue', spectatorName);
+		else if(client.team == "blue" && client.name == spectatorName)
+			socket.emit('removeFromRed', spectatorName);
 	}
 	client.isOnATeam = true;
 }
@@ -156,15 +172,15 @@ function removeSpectator(playerName){
 // send client information to server about the spies
 function redSpyMaster(){
 	if(client.team == 'red'){
-		client.spymaster = true;
-		socket.emit('redSpy', client.name);
+		client.isSpymaster = true;
+		socket.emit('redSpySelected', client.name);
 	}
 }
 
 function blueSpyMaster(){
 	if(client.team == 'blue'){
-		client.spymaster = true;
-		socket.emit('blueSpy', client.name);
+		client.isSpymaster = true;
+		socket.emit('blueSpySelected', client.name);
 	}
 }
 
@@ -175,7 +191,6 @@ function removeRedSpyButton({ redSpyExists, redSpyMaster }){
 		
 		hideElements(redSpy_btn, document.querySelector("#red-spy-waiting"));
 		showElements(document.querySelector("#reveal-red-spy"));
-		thereIsARedSpy = true;
 		socket.emit('highlightRedSpy', redSpyMaster);
 	}
 }
@@ -186,7 +201,6 @@ function removeBlueSpyButton({ blueSpyExists, blueSpyMaster }){
 
 		hideElements(blueSpy_btn, document.querySelector("#blue-spy-waiting"));
 		showElements(document.querySelector("#reveal-blue-spy"));
-		thereIsABlueSpy = true;
 		socket.emit('highlightBlueSpy', blueSpyMaster);
 	}
 }
@@ -195,7 +209,7 @@ function removeBlueSpyButton({ blueSpyExists, blueSpyMaster }){
 function highlightRedSpy(nameOfSpy){
 	let redPlayers = redPlayerList.querySelectorAll("h3");
 	for(let i = 0; i < redPlayers.length; i++){
-		if(redPlayers[i].innerHTML == (nameOfSpy + '  ')){
+		if(redPlayers[i].innerHTML == nameOfSpy){
 			redPlayers[i].style.background = "grey";
 			redPlayers[i].style.border = "2px solid lightgrey";
 			redPlayers[i].style.padding = "5px";
@@ -206,7 +220,7 @@ function highlightRedSpy(nameOfSpy){
 function highlightBlueSpy(nameOfSpy){
 	let bluePlayers = bluePlayerList.querySelectorAll("h3");
 	for(let i = 0; i < bluePlayers.length; i++){
-		if(bluePlayers[i].innerHTML == (nameOfSpy + '  ')){
+		if(bluePlayers[i].innerHTML == nameOfSpy){
 			bluePlayers[i].style.background = "grey";
 			bluePlayers[i].style.border = "2px solid lightblue"
 			bluePlayers[i].style.padding = "5px";
@@ -214,34 +228,15 @@ function highlightBlueSpy(nameOfSpy){
 	}
 }
 
-// removes the HTML and name of a exiting or team switching player
-function removeBluePlayer(playerName){
-	// blue player switches to red team
-	let bluePlayers = bluePlayerList.querySelectorAll("h3");
-	for(let i = 0; i < bluePlayers.length; i++){
-		if(bluePlayers[i].innerHTML == (playerName + '  '))
-			bluePlayerList.removeChild(bluePlayers[i]);
-	}
-}
-
-function removeRedPlayer(playerName){
-	// red player switches to blue team
-	let redPlayers = redPlayerList.querySelectorAll("h3");
-	for(let i = 0; i < redPlayers.length; i++){
-		if(redPlayers[i].innerHTML == (playerName + '  '))
-			redPlayerList.removeChild(redPlayers[i]);
-	}
-}
-
 // need to show the spy button when a current spy leaves so that a new player can be it
 function showBlueSpyButton(){
-	client.spymaster = false;
+	client.isSpymaster = false;
 	showElements(blueSpy_btn, document.querySelector("#blue-spy-waiting"));
 	hideElements(document.querySelector("#reveal-blue-spy"));
 }
 
 function showRedSpyButton(){
-	client.spymaster = false;
+	client.isSpymaster = false;
 	showElements(redSpy_btn, document.querySelector("#red-spy-waiting"));
 	hideElements(document.querySelector("#reveal-red-spy"));
 }
@@ -270,10 +265,8 @@ function shuffleNumbers(cardPositions) {
 }
 
 function gameStartSetup(){
-	socket.emit('gameHasStarted');
-
-	// start game only when the two spymasters are chosen
-	if(thereIsABlueSpy && thereIsARedSpy && gameisNotStarted){
+	if(bothSpiesExist && gameisNotStarted){
+		socket.emit('gameHasStarted');
 		let boardData = {
 			randomIndices: [],
 			divColors: []
@@ -671,19 +664,38 @@ function newBoard({ currentBoardColors }){
 	}
 }
 
-function resetSpyBoard(){
+function updateBoard(gameData){
 	for(let i = 0; i < allCards.length; i++){
-		allCards[i].classList.remove("red2");
-		allCards[i].classList.remove("blue2");
-		allCards[i].classList.remove("yellow2");
-		allCards[i].classList.remove("black2");
-
-		let word = allCards[i].querySelector("p");
+		if(gameData.currentBoardColors[i] != 'lightgrey')
+			allCards[i].classList.add(gameData.currentBoardColors[i]);
 	}
-	hideElements(hintInput);
+}
 
-	let select = document.querySelector("select");
-	select.parentNode.removeChild(select);
+function updateGameWords(gameData){
+	if(gameData.gameHasStarted){
+		let gameWords = gameBoard.querySelectorAll("p");	
+		for(let i = 0; i < gameWords.length; i++){
+			gameWords[i].innerHTML = gameData.gameWords[i];
+		}
+		document.querySelector("#message").classList.add("hide");
+	}
+}
+
+function resetSpyBoard(){
+	if(!gameisNotStarted) {
+		for(let i = 0; i < allCards.length; i++){
+			allCards[i].classList.remove("red2");
+			allCards[i].classList.remove("blue2");
+			allCards[i].classList.remove("yellow2");
+			allCards[i].classList.remove("black2");
+
+			let word = allCards[i].querySelector("p");
+		}
+		hideElements(hintInput);
+
+		let select = document.querySelector("select");
+		select.parentNode.removeChild(select);
+	}
 }
 
 // [].slice.call converts the nodelist returned from querySelectorAll into an array
@@ -703,15 +715,14 @@ function resetWords(){
 function removePlayers({ allPlayers }){
 	// reset all client data
 	client.team = '';
-	client.spymaster = false;
+	client.isSpymaster = false;
 	client.yourTurn = false;
 	client.teamJoinCounter = 0;
 	client.isOnATeam = false;
 	client.canGuess = false;
 
 	gameisNotStarted = true;
-	thereIsABlueSpy = false; 
-	thereIsARedSpy = false;
+	bothSpiesExist = false;
 
 	// remove all the player names from the client's browser
 	for(let i = 0; i < allPlayers.length; i++){
@@ -725,7 +736,7 @@ function removePlayers({ allPlayers }){
 		blueSpy_btn,
 		redSpy_btn,
 		submitName_btn,
-		name,
+		nameInput,
 		resetMessage,
 		document.querySelector("#message")
 	);
@@ -755,26 +766,14 @@ function removePlayers({ allPlayers }){
 
 /* Sockets
 **************************************/
-socket.on('playerNames', (spectatorName) => appendToDOM(spectatorName, spectatorList));
 socket.on('displayChatMessage', displayChatMessage);
 socket.on('displayTeamChat', displayChatMessage);
 socket.on('showClientChatter', highlightChatter);
-// updating new players who joined later than others
-socket.on('allSpectators', (spectators) => updateCurrentPlayers(spectators, spectatorList));
-socket.on('allBluePlayers', (bluePlayers) => updateCurrentPlayers(bluePlayers, bluePlayerList));
-socket.on('allRedPlayers', (redPlayers) => updateCurrentPlayers(redPlayers,  redPlayerList));
+
 socket.on('nameOfBlueSpy', removeBlueSpyButton);
 socket.on('nameOfRedSpy', removeRedSpyButton);
 socket.on('updateBoard', updateBoard);
 socket.on('updateGameWords', updateGameWords);
-
-// move the clients' name to their respective teams
-socket.on('bluePlayer', (bluePlayerName) => appendToDOM(bluePlayerName, bluePlayerList));
-socket.on('redPlayer', (redPlayerName) => appendToDOM(redPlayerName, redPlayerList));
-socket.on('removeSpectator', removeSpectator);
-socket.on('bluePlayerLeft', removeBluePlayer);
-socket.on('redPlayerLeft', removeRedPlayer);
-socket.on('spectatorLeft', removeSpectator);
 
 // spy stuff setup
 socket.on('someoneBecameBlueSpy', removeBlueSpyButton);
@@ -809,21 +808,4 @@ socket.on('resetSpyBoard', resetSpyBoard);
 socket.on('resetTheChat', resetChat);
 socket.on('resetWords', resetWords);
 socket.on('newBoard', newBoard);
-
-/* Event Listeners
-***********************************/
-submitName_btn.addEventListener("click", sendNameToServer);
-joinBlue_btn.addEventListener("click", joinBlueTeam);
-joinRed_btn.addEventListener("click", joinRedTeam);
-blueSpy_btn.addEventListener("click", blueSpyMaster);
-redSpy_btn.addEventListener("click", redSpyMaster);
-startGame_btn.addEventListener("click", gameStartSetup);
-restartGame_btn.addEventListener("click", restartGame);
-document.querySelector("#hint-btn").addEventListener("click", startGuess);
-chatInput.addEventListener("keyup", chatEntered);
-teamChatInput.addEventListener("keyup", teamChatEntered);
-
-// add a click listener to all cards
-for(let i = 0; i < allCards.length; i++)
-	allCards[i].addEventListener("click", whichCardWasPicked);
 }

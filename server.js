@@ -71,9 +71,12 @@ io.sockets.on('connection', (socket) => {
 	socketIDlist.push(socket.id);
 		
 	// update a new player on the overall game state
-	socket.emit('allSpectators', playerData.spectators);
-	socket.emit('allBluePlayers', playerData.bluePlayers);
-	socket.emit('allRedPlayers', playerData.redPlayers);
+	let currentPlayers = {
+		spectators: playerData.spectators,
+		bluePlayers: playerData.bluePlayers,
+		redPlayers: playerData.redPlayers
+	}
+	socket.emit('update players for new connection', currentPlayers);
 
 	if(gameData.gameHasStarted) {
 		socket.emit('updateBoard', gameData);
@@ -130,14 +133,14 @@ io.sockets.on('connection', (socket) => {
 
 	// team setup
 	/****************************************/
-	socket.on('playerName', (name) => {
+	socket.on('newPlayerJoined', (name) => {
 		const { spectatorIDs, allPlayers, spectators } = playerData;
 
 		spectatorIDs.push(socket.id);
 		allPlayers.push(name);
 		spectators.push(name);
 		console.log("spectators after entering: " + spectators);
-		io.sockets.emit('playerNames', name);
+		io.sockets.emit('add new player', name);
 	});
 
 	socket.on('someoneChatted', ({ chatter, chatMessage }) => {
@@ -167,13 +170,13 @@ io.sockets.on('connection', (socket) => {
 		socket.emit('showClientChatter');
 	});
 
-	socket.on('blue', (clientName) => {
+	socket.on('playerJoinedBlue', (clientName) => {
 		console.log("Player: " + clientName + " has joined blue team");
 		const { bluePlayers, blueIDs, spectators } = playerData;
 
 		bluePlayers.push(clientName);
 		blueIDs.push(socket.id);
-		io.sockets.emit('bluePlayer', clientName);
+		io.sockets.emit('add blue player', clientName);
 		spectators.splice(spectators.indexOf(clientName), 1);
 		io.sockets.emit('removeSpectator', clientName);
 	});
@@ -188,13 +191,13 @@ io.sockets.on('connection', (socket) => {
 		io.sockets.emit('bluePlayerLeft', bluePlayerToBeRemoved);
 	});
 
-	socket.on('red', (clientName) => {
+	socket.on('playerJoinedRed', (clientName) => {
 		console.log("Player: " + clientName + " has joined red team");
 		const { redPlayers, redIDs, spectators } = playerData;
 
 		redPlayers.push(clientName);
 		redIDs.push(socket.id);
-		io.sockets.emit('redPlayer', clientName);
+		io.sockets.emit('add red player', clientName);
 		spectators.splice(spectators.indexOf(clientName), 1);
 		io.sockets.emit('removeSpectator', clientName);
 	});
@@ -209,11 +212,17 @@ io.sockets.on('connection', (socket) => {
 		io.sockets.emit('redPlayerLeft', redPlayerToBeRemoved);
 	});
 
-	socket.on('blueSpy', (nameOfSpyMaster) => {		
+	socket.on('blueSpySelected', (nameOfSpyMaster) => {		
 		playerData.blueSpyExists = true;
 		playerData.blueSpyMaster = nameOfSpyMaster;
 		playerData.blueSpyID = socket.id;
 		io.sockets.emit('someoneBecameBlueSpy', playerData);
+		
+		if(playerData.blueSpyExists && playerData.redSpyExists) {
+			io.sockets.emit('bothSpiesExist', true);
+		} else {
+			io.sockets.emit('bothSpiesExist', false);
+		}
 	});
 
 	socket.on('highlightBlueSpy', () => {
@@ -225,11 +234,17 @@ io.sockets.on('connection', (socket) => {
 		io.sockets.emit('blueSpyChangedTeam');
 	});
 	
-	socket.on('redSpy', (nameOfSpyMaster) => {
+	socket.on('redSpySelected', (nameOfSpyMaster) => {
 		playerData.redSpyExists = true;
 		playerData.redSpyMaster = nameOfSpyMaster;
 		playerData.redSpyID = socket.id;
 		io.sockets.emit('someoneBecameRedSpy', playerData);
+
+		if(playerData.blueSpyExists && playerData.redSpyExists) {
+			io.sockets.emit('bothSpiesExist', true);
+		} else {
+			io.sockets.emit('bothSpiesExist', false);
+		}
 	});
 
 	socket.on('highlightRedSpy', (nameOfRedSpy) => {

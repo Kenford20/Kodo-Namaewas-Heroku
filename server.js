@@ -86,10 +86,10 @@ io.sockets.on('connection', (socket) => {
 
 	if(playerData.blueSpyExists) {
 		console.log('updating client on spy');
-		socket.emit('nameOfBlueSpy', playerData);
+		socket.emit('update blue spymaster for new connection', playerData);
 	}
 	if(playerData.redSpyExists) {
-		socket.emit('nameOfRedSpy', playerData);
+		socket.emit('update red spymaster for new connection', playerData);
 	}
 	
 	// handling the server data and client DOM elements on disconnect
@@ -216,7 +216,7 @@ io.sockets.on('connection', (socket) => {
 		playerData.blueSpyExists = true;
 		playerData.blueSpyMaster = nameOfSpyMaster;
 		playerData.blueSpyID = socket.id;
-		io.sockets.emit('someoneBecameBlueSpy', playerData);
+		io.sockets.emit('someoneBecameBlueSpy', playerData, 'blue');
 		
 		if(playerData.blueSpyExists && playerData.redSpyExists) {
 			io.sockets.emit('bothSpiesExist', true);
@@ -238,7 +238,7 @@ io.sockets.on('connection', (socket) => {
 		playerData.redSpyExists = true;
 		playerData.redSpyMaster = nameOfSpyMaster;
 		playerData.redSpyID = socket.id;
-		io.sockets.emit('someoneBecameRedSpy', playerData);
+		io.sockets.emit('someoneBecameRedSpy', playerData, 'red');
 
 		if(playerData.blueSpyExists && playerData.redSpyExists) {
 			io.sockets.emit('bothSpiesExist', true);

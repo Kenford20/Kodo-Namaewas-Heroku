@@ -1,7 +1,7 @@
 function updateCurrentPlayers(playerNames, elementLocation) {
 	playerNames.map(playerName => {
 		let player = document.createElement("h3");
-		let node = document.createTextNode(playerName + "  ");
+		let node = document.createTextNode(playerName);
 		player.appendChild(node);
 		elementLocation.appendChild(player);
 	});

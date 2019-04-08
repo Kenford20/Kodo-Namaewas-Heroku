@@ -11,15 +11,28 @@ function appendToDOM(playerName, elementLocation) {
 }
 
 function removeFromDOM(playerName, playerList) {
-	console.log(playerList);
 	[].slice.call(playerList.querySelectorAll("h3")).map(name => {
 		if(name.innerHTML === playerName)
 			playerList.removeChild(name); 
 	})
 }
 
+function updatePlayerLists(socket, spectatorName, spectatorList, client) {
+	removeFromDOM(spectatorName, spectatorList);
+
+	// handles team changing of clients (you're switching teams if counter > 1)
+	if(client.teamJoinCounter > 1 && client.name == spectatorName){
+		if(client.team == "red")
+			socket.emit('removeFromBlue', spectatorName);
+		else if(client.team == "blue" && client.name == spectatorName)
+			socket.emit('removeFromRed', spectatorName);
+	}
+	client.isOnATeam = true;
+}
+
 module.exports = {
 	sendNameToServer: sendNameToServer,
 	appendToDOM: appendToDOM,
-	removeFromDOM: removeFromDOM
+	removeFromDOM: removeFromDOM,
+	updatePlayerLists: updatePlayerLists
 }

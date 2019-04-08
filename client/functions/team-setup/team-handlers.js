@@ -28,7 +28,6 @@ function handleJoinTeam(socket, gameisNotStarted, teamColor, clientData) {
                 socket.emit('blueSpyChangedTeam');
             }
 		}
-        console.log(clientData);
     } 
 }
 

@@ -1,4 +1,4 @@
-const hideShowHandlers = require('../hide-show-handlers');
+const hideShowHandlers = require('../update/hide-show-handlers');
 let HIDE_ELEMENTS = hideShowHandlers.hideElements;
 let SHOW_ELEMENTS = hideShowHandlers.showElements;
 

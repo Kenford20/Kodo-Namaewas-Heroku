@@ -56,15 +56,30 @@ let bothSpiesExist = false;
 /* 
 	MODULE IMPORTS
 */
-const hideShowHandlers = require('./functions/hide-show-handlers');
+const hideShowHandlers = require('./functions/update/hide-show-handlers');
 let HIDE_ELEMENTS = hideShowHandlers.hideElements;
-let SHOW_ELEMENTS = hideShowHandlers.SHOW_ELEMENTS;
+let SHOW_ELEMENTS = hideShowHandlers.showElements;
 
-const updateHandlers = require('./functions/update-handlers');
-let UPDATE_CURRENT_PLAYERS = updateHandlers.updateCurrentPlayers;
-let UPDATE_BOARD           = updateHandlers.updateBoard;
-let UPDATE_GAME_WORDS      = updateHandlers.updateGameWords;
+/* 
+	HTML EVENT LISTENERS
+*/
 
+startGame_btn.addEventListener("click", gameStartSetup);
+restartGame_btn.addEventListener("click", restartGame);
+document.querySelector("#hint-btn").addEventListener("click", startGuess);
+
+// add a click listener to all cards
+for(let i = 0; i < allCards.length; i++)
+	allCards[i].addEventListener("click", whichCardWasPicked);
+
+
+/***************************************************************
+******************* PLAYER SET UP BELOW ************************
+****************************************************************/
+
+/* 
+	PLAYER NAME SET UP
+*/
 const nameHandlers = require('./functions/player-setup/name-handlers');
 let SEND_NAME_TO_SERVER = nameHandlers.sendNameToServer;
 let APPEND_TO_DOM       = nameHandlers.appendToDOM;
@@ -74,15 +89,12 @@ let UPDATE_PLAYER_LISTS = nameHandlers.updatePlayerLists;
 const teamHandlers = require('./functions/team-setup/team-handlers');
 let HANDLE_JOIN_TEAM = teamHandlers.handleJoinTeam;
 
-const spyHandlers = require('./functions/spymaster-setup/spy-handlers');
-let SEND_SPY_TO_SERVER  = spyHandlers.sendSpyToServer;
-let HIGHLIGHT_SPYMASTER = spyHandlers.highlightSpymaster;
-let REMOVE_SPY_BUTTON   = spyHandlers.removeSpyButton;
-let SHOW_SPY_BUTTON     = spyHandlers.showSpyButton;
+const updateHandlers = require('./functions/update/update-handlers');
+let UPDATE_CURRENT_PLAYERS = updateHandlers.updateCurrentPlayers;
+let UPDATE_BOARD           = updateHandlers.updateBoard;
+let UPDATE_GAME_WORDS      = updateHandlers.updateGameWords;
 
-/* 
-	EVENT LISTENERS
-*/
+/* PLAYER SET UP HTML LISTENERS */
 submitName_btn.addEventListener("click", () => {
 	SEND_NAME_TO_SERVER(socket, 'newPlayerJoined', nameInput.value);
 	client.name = nameInput.value;
@@ -101,38 +113,10 @@ joinRed_btn.addEventListener("click", () => {
 	}
 });
 
-blueSpy_btn.addEventListener("click", () => {
-	SEND_SPY_TO_SERVER(socket, client);
-});
-
-redSpy_btn.addEventListener("click", () => {
-	SEND_SPY_TO_SERVER(socket, client);
-});
-
-startGame_btn.addEventListener("click", gameStartSetup);
-restartGame_btn.addEventListener("click", restartGame);
-document.querySelector("#hint-btn").addEventListener("click", startGuess);
-chatInput.addEventListener("keyup", chatEntered);
-teamChatInput.addEventListener("keyup", teamChatEntered);
-
-// add a click listener to all cards
-for(let i = 0; i < allCards.length; i++)
-	allCards[i].addEventListener("click", whichCardWasPicked);
-
-/* 
-	SOCKET LISTENERS
-*/
-socket.on('add new player', (spectatorName) => {
-	APPEND_TO_DOM(spectatorName, spectatorList)
-});
-
-socket.on('add blue player', (bluePlayerName) => {
-	APPEND_TO_DOM(bluePlayerName, bluePlayerList)
-});
-
-socket.on('add red player', (redPlayerName) => {
-	APPEND_TO_DOM(redPlayerName, redPlayerList)
-});
+/* PLAYER SET UP SOCKET LISTENERS */
+socket.on('add new player', (spectatorName) => APPEND_TO_DOM(spectatorName, spectatorList));
+socket.on('add blue player', (bluePlayerName) => APPEND_TO_DOM(bluePlayerName, bluePlayerList));
+socket.on('add red player', (redPlayerName) => APPEND_TO_DOM(redPlayerName, redPlayerList));
 
 socket.on('update players for new connection', ({ spectators, bluePlayers, redPlayers }) => {
 	UPDATE_CURRENT_PLAYERS(spectators, spectatorList);
@@ -140,29 +124,26 @@ socket.on('update players for new connection', ({ spectators, bluePlayers, redPl
 	UPDATE_CURRENT_PLAYERS(redPlayers,  redPlayerList);
 });
 
-socket.on('removeSpectator', (spectator) => {
-	UPDATE_PLAYER_LISTS(socket, spectator, spectatorList, client);
-});
-
-socket.on('spectatorLeft', (spectator) => {
-	UPDATE_PLAYER_LISTS(socket, spectator, spectatorList, client);
-});
-
-socket.on('bluePlayerLeft', (bluePlayer) => {
-	REMOVE_FROM_DOM(bluePlayer, bluePlayerList);
-});
-
-socket.on('redPlayerLeft', (redPlayer) => {
-	REMOVE_FROM_DOM(redPlayer, redPlayerList);
-});
-
-socket.on('bothSpiesExist', (doBothSpiesExist) => {
-	bothSpiesExist = doBothSpiesExist;
-});
+socket.on('removeSpectator', (spectator) => UPDATE_PLAYER_LISTS(socket, spectator, spectatorList, client));
+socket.on('spectatorLeft', (spectator)   => UPDATE_PLAYER_LISTS(socket, spectator, spectatorList, client));
+socket.on('bluePlayerLeft', (bluePlayer) => REMOVE_FROM_DOM(bluePlayer, bluePlayerList));
+socket.on('redPlayerLeft', (redPlayer)   => REMOVE_FROM_DOM(redPlayer, redPlayerList));
+socket.on('bothSpiesExist', (doBothSpiesExist) => bothSpiesExist = doBothSpiesExist);
 
 /* 
-	SPYMASTER LISTENERS
+	SPYMASTER SET UP
 */
+const spyHandlers = require('./functions/spymaster-setup/spy-handlers');
+let SEND_SPY_TO_SERVER  = spyHandlers.sendSpyToServer;
+let HIGHLIGHT_SPYMASTER = spyHandlers.highlightSpymaster;
+let REMOVE_SPY_BUTTON   = spyHandlers.removeSpyButton;
+let SHOW_SPY_BUTTON     = spyHandlers.showSpyButton;
+
+/* SPYMASTER HTML LISTENERS */
+blueSpy_btn.addEventListener("click", () => SEND_SPY_TO_SERVER(socket, client));
+redSpy_btn.addEventListener("click",  () => SEND_SPY_TO_SERVER(socket, client));
+
+/* SPYMASTER SOCKET LISTENERS */
 socket.on('someoneBecameBlueSpy', ({ blueSpyMaster, blueSpyExists }) => {
 	REMOVE_SPY_BUTTON(socket, blueSpyMaster, blueSpyExists, 'blue');
 });
@@ -179,52 +160,45 @@ socket.on('update blue spymaster for new connection', ({ redSpyMaster, redSpyExi
 	REMOVE_SPY_BUTTON(socket, redSpyMaster, redSpyExists, 'blue');
 });
 
-socket.on('blueSpyLeft', () => {
-	SHOW_SPY_BUTTON(client, 'blue');
+socket.on('blueSpyLeft',        () => SHOW_SPY_BUTTON(client, 'blue'));
+socket.on('blueSpyChangedTeam', () => SHOW_SPY_BUTTON(client, 'blue'));
+socket.on('redSpyLeft',         () => SHOW_SPY_BUTTON(client, 'red'));
+socket.on('redSpyChangedTeam',  () => SHOW_SPY_BUTTON(client, 'red'));
+socket.on('highlightBlueSpy', (nameOfSpy) => HIGHLIGHT_SPYMASTER(nameOfSpy, bluePlayerList, 'blue'));
+socket.on('highlightRedSpy',  (nameOfSpy) => HIGHLIGHT_SPYMASTER(nameOfSpy, redPlayerList, 'red'));
+
+/*
+	CHAT
+*/
+const chatHandlers = require('./functions/chat/chat-handlers');
+let CHAT_ENTERED           = chatHandlers.chatEntered;
+let TEAM_CHAT_ENTERED      = chatHandlers.teamChatEntered;
+let DISPLAY_CHAT_MESSAGE   = chatHandlers.displayChatMessage;
+let HIGHLIGHT_CHATTER      = chatHandlers.highlightChatter;
+
+/* CHAT HTML LISTENERS */
+chatInput.addEventListener("keyup",     () => CHAT_ENTERED(socket, client));
+teamChatInput.addEventListener("keyup", () => TEAM_CHAT_ENTERED(socket, client));
+
+/* CHAT SOCKET LISTENERS */
+socket.on('displayChatMessage', ({ chatter, chatMessage, isTeamMessage }) => {
+	DISPLAY_CHAT_MESSAGE(socket, chatter, chatMessage, isTeamMessage);
 });
 
-socket.on('blueSpyChangedTeam', () => {
-	SHOW_SPY_BUTTON(client, 'blue');
+socket.on('displayTeamChat', ({ chatter, chatMessage, isTeamMessage }) => {
+	DISPLAY_CHAT_MESSAGE(socket, chatter, chatMessage, isTeamMessage);
 });
 
-socket.on('redSpyLeft', () => {
-	SHOW_SPY_BUTTON(client, 'red');
-});
+socket.on('showClientChatter', () => HIGHLIGHT_CHATTER(client));
 
-socket.on('redSpyChangedTeam', () => {
-	SHOW_SPY_BUTTON(client, 'red');
-});
-
-socket.on('highlightBlueSpy', (nameOfSpy) => {
-	HIGHLIGHT_SPYMASTER(nameOfSpy, bluePlayerList, 'blue');
-});
-
-socket.on('highlightRedSpy', (nameOfSpy) => {
-	HIGHLIGHT_SPYMASTER(nameOfSpy, redPlayerList, 'red');
-});
-
-/* 
-****************************************************************
+/***************************************************************
 ************ GAME HAS NOW STARTED BELOW ************************
 ****************************************************************/
 
-// takes an array of the board's card positions and shuffles the indices around
-function shuffleNumbers(cardPositions) {
-    let i = cardPositions.length;
-    let j = 0;
-    let temp;
-
-    while (i--) {
-    	// generates a random index to swap with
-        j = Math.floor(Math.random() * (i+1));
-
-        // swap randomly chosen element with current element
-        temp = cardPositions[i];
-        cardPositions[i] = cardPositions[j];
-        cardPositions[j] = temp;
-    }
-    return cardPositions;
-}
+/*
+	MODULE IMPORTS FOR GAME SET UP
+*/
+const SHUFFLE_NUMBERS = require('./functions/game-setup/card-handlers');
 
 function gameStartSetup(){
 	if(bothSpiesExist && gameisNotStarted){
@@ -235,7 +209,7 @@ function gameStartSetup(){
 		}
 		let randomNumbers = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24];
 
-		shuffleNumbers(randomNumbers);
+		SHUFFLE_NUMBERS(randomNumbers);
 		boardData.randomIndices = randomNumbers;
 		let randomTeamStarts = Math.floor(Math.random() * 2); // returns 0 or 1
 
@@ -536,83 +510,6 @@ function redWins(){
 	);
 }
 
-// chat functions
-function chatEntered(){
-	if(event.keyCode == 13){
-		const { name } = client;
-		if(name != ''){
-			const chatData = {
-				chatter: '',
-				chatMessage: ''
-			};
-			chatData.chatter = name;
-			chatData.chatMessage = chatInput.value;
-			socket.emit('someoneChatted', chatData);
-			chatInput.value = '';
-		}
-		else{
-			chatInput.value = '';
-			alert("Please enter a name before you chat!");
-		}
-	}
-}
-
-function teamChatEntered(){
-	if(event.keyCode == 13){
-		const { team, name } = client;
-		if(team != ''){
-			const teamChatData = {
-				teamChatter: '',
-				chatterTeamColor: '',
-				teamChatMessage: ''
-			};
-			teamChatData.teamChatter = name;
-			teamChatData.chatterTeamColor = team;
-			teamChatData.teamChatMessage = teamChatInput.value;
-			socket.emit('teamChat', teamChatData);
-			teamChatInput.value = '';
-		}
-		else{
-			teamChatInput.value = '';
-			alert("Please join a team before using team chat!");
-		}
-	}
-}
-
-function displayChatMessage({ chatter, chatMessage, isTeamMessage }){
-	socket.emit('chatterSpan');
-
-	let message = document.createElement("h5");
-	let chatterName = document.createElement("span");
-	let chatterNode = document.createTextNode(chatter);
-	chatterName.appendChild(chatterNode);
-	message.appendChild(chatterName);
-
-	let chatText = ": " + chatMessage;
-	let messageNode = document.createTextNode(chatText);
-	message.appendChild(messageNode);
-	message.classList.add("chat-message");
-
-	// create the message in the team chat box if message was entered in there
-	if(isTeamMessage)
-		teamChatBox.appendChild(message);
-	// else create it in the global chat box
-	else
-		chatBox.appendChild(message);
-
-	// keeps the chatbox at the bottom of the scrollbar after overflow occurs within the chatbox div
-	chatBox.scrollTop = chatBox.scrollHeight;
-	teamChatBox.scrollTop = teamChatBox.scrollHeight;
-}
-
-// styles the client's name in the chatbox to differentiate from the other players chat message
-function highlightChatter(){
-	let chatterNames = [].slice.call(chat.querySelectorAll("span"));
-	
-	chatterNames.filter(names => names.innerHTML == client.name)
-	.map(name => name.classList.add('highlight-chatter'));
-}
-
 /* Restarting the game */
 function restartGame(){
 	socket.emit('restartGame');
@@ -730,9 +627,6 @@ function removePlayers({ allPlayers }){
 
 /* Sockets
 **************************************/
-socket.on('displayChatMessage', displayChatMessage);
-socket.on('displayTeamChat', displayChatMessage);
-socket.on('showClientChatter', highlightChatter);
 
 socket.on('updateBoard', updateBoard);
 socket.on('updateGameWords', updateGameWords);

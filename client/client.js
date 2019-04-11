@@ -187,15 +187,10 @@ let SET_SPY_BOARD_COLORS = gameSetupHandlers.setSpyBoardColors;
 let CREATE_HINT_BOX      = gameSetupHandlers.createHintBox;
 
 /* GAME SETUP HTML LISTENERS */
-document.querySelector("#hint-btn").addEventListener("click", startGuess);
 restartGame_btn.addEventListener("click", restartGame);
 startGame_btn.addEventListener("click", () => {
 	SET_STARTING_BOARD(socket, bothSpiesExist, gameisNotStarted);
 });
-
-for(let i = 0; i < allCards.length; i++) {
-	allCards[i].addEventListener("click", whichCardWasPicked);
-}
 
 /* GAME SETUP SOCKET LISTENERS */
 socket.on('gameHasStarted', () => gameisNotStarted = false);
@@ -209,116 +204,47 @@ socket.on('createHintBox',      (gameData) => CREATE_HINT_BOX(gameData));
 */
 const gameplayHandlers = require('./functions/game-setup/game-play-handlers');
 let UPDATE_SCORES = gameplayHandlers.updateScores;
+let SHOW_WAITING_MESSAGE = gameplayHandlers.showWaitingMessage;
+let START_GUESS = gameplayHandlers.startGuess;
+let SHOW_GUESS_MESSAGE = gameplayHandlers.showGuessMessage;
+let REVEAL_HINT = gameplayHandlers.revealHint;
+let CLIENT_CAN_GUESS = gameplayHandlers.clientCanGuess;
 
-socket.on('waitingForBlueSpy', blueTeamWaits);
-socket.on('waitingForRedSpy', redTeamWaits);
-socket.on('guessMessage', guessMessage);
-socket.on('revealHint', revealHint);
-socket.on('pickCards', pickCards);
-socket.on('showGuesser', showGuesser);
-socket.on('updateScore', (gameData) => UPDATE_SCORES(gameData));
-socket.on('revealCardColor', revealCardColor);
-socket.on('guessHasBeenMade', revealCardForSpies);
-socket.on('donePickingCards', disableEventListeners);
-
-function blueTeamWaits({ gameOver }){
-	if(!gameOver){
-		HIDE_ELEMENTS(
-			redWaitingMessage, 
-			redGuessMessage, 
-			resetMessage, 
-			document.querySelector("#hint-message"), 
-			document.querySelector("#message")
-		);
-		SHOW_ELEMENTS(blueWaitingMessage);
-	}
-}
-
-function redTeamWaits({ gameOver }){
-	if(!gameOver){
-		HIDE_ELEMENTS(
-			blueWaitingMessage,
-			blueGuessMessage,
-			resetMessage,
-			document.querySelector("#hint-message"), 
-			document.querySelector("#message")
-		);
-		SHOW_ELEMENTS(redWaitingMessage);
-	}
-}
-
-// runs when hint submission button is clicked
-// hides the hint input from the spy master once the hint is submitted
-function startGuess(){
-	socket.emit('guessMessage');
-
-	const hintData = {
-		word: '',
-		number: 0,
-		isBlueTurn: false,
-		isRedTurn: false
-	};
-
-	hintData.word = document.querySelector("#input-hint").value;
-	hintData.number = document.querySelector("select").value;
-	socket.emit('hintSubmitted', hintData);
-
-	HIDE_ELEMENTS(hintInput)
-
-	let select = document.querySelector("select");
-	select.parentNode.removeChild(select);
-
-	socket.emit('readyToGuess');
-}
-
-// reveals a message to all clients prompting them to guess
-function guessMessage({ isBlueTurn }){
-	HIDE_ELEMENTS(resetMessage);
-	if(isBlueTurn){
-		HIDE_ELEMENTS(blueWaitingMessage);
-		SHOW_ELEMENTS(blueGuessMessage);
-	}
-	else{
-		HIDE_ELEMENTS(redWaitingMessage);
-		SHOW_ELEMENTS(redGuessMessage);
-	}
-}
-
-// reveals the hint to all clients, showing the word and number
-function revealHint(hintData){
-	SHOW_ELEMENTS(document.querySelector("#hint-message"));
-	document.querySelector("#hint-word").innerHTML = hintData.word;
-	document.querySelector("#hint-number").innerHTML = hintData.number;
-
-	// styling the hint spans
-	if(hintData.isBlueTurn){
-		document.querySelector("#hint-word").style.color = "#1c64ff";
-		document.querySelector("#hint-number").style.color = "#1c64ff";
-	}
-	else{
-		document.querySelector("#hint-word").style.color = "#db3328";
-		document.querySelector("#hint-number").style.color = "#db3328";
-	}
-}
-
-// boolean controlled by the server (will only run for clients when it is their turn to guess)
-function pickCards(){
-	client.canGuess = true;
-}
+let SEND_PICKED_CARD_TO_SERVER = require('./functions/game-setup/card-handlers').sendPickedCardToServer;
 
 // determines which card was selected based on the index in the array of cards
-function whichCardWasPicked(){
+function sendPickedCardToServer() {
 	const { canGuess, name } = client;
-	if(canGuess){ 
-		// allCards is a nodeList created from querySelectorAll
-		// the assignment below turns it into an array to allow for use of array methods
-		let allCardsArray = [].slice.call(allCards);
+	if(canGuess) { 
+		console.log(this);
+		let allCardsArray = [].slice.call(document.querySelectorAll(".card"));
 		socket.emit('cardWasPicked', allCardsArray.indexOf(this));
 		socket.emit('showGuesser', name);
 	} else {
 		alert('It is not your turn! Please wait until next round to guess!');
 	}
 }
+
+/* GAME PLAY HTML LISTENERS */
+document.querySelector("#hint-btn").addEventListener("click", () => START_GUESS(socket));
+
+for(let i = 0; i < allCards.length; i++) {
+	allCards[i].addEventListener("click", (e) => {
+		SEND_PICKED_CARD_TO_SERVER(socket, client, e.target)
+	});
+}
+
+/* GAME PLAY SOCKET LISTENERS */
+socket.on('updateScore', (gameData) => UPDATE_SCORES(gameData));
+socket.on('waitingForBlueSpy', (gameData) => SHOW_WAITING_MESSAGE(gameData, 'blue'));
+socket.on('waitingForRedSpy', (gameData) => SHOW_WAITING_MESSAGE(gameData, 'red'));
+socket.on('guessMessage', (gameData) => SHOW_GUESS_MESSAGE(gameData));
+socket.on('revealHint', (hintData) => REVEAL_HINT(hintData));
+socket.on('pickCards', () => CLIENT_CAN_GUESS(client));
+socket.on('showGuesser', showGuesser);
+socket.on('revealCardColor', revealCardColor);
+socket.on('guessHasBeenMade', revealCardForSpies);
+socket.on('donePickingCards', disableEventListeners);
 
 // reveals the div that shows who guessed the lastly guessed word
 function showGuesser({ isBlueTurn, isRedTurn, cardSelected, playerWhoGuessed }){
@@ -338,6 +264,7 @@ function showGuesser({ isBlueTurn, isRedTurn, cardSelected, playerWhoGuessed }){
 
 // just changes styles for spies when a card is selected so they know what the guesses are
 function revealCardForSpies({ cardSelected, gameBoardColors }){
+	console.log(allCards);
 	let word = allCards[cardSelected].querySelector("p");
 	word.style.textDecoration = "line-through";
 	allCards[cardSelected].classList.remove('rotate');

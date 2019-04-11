@@ -32,7 +32,20 @@ function fetchGameWords(file){
     return fileWords;
 }
 
+// determines which card was selected based on the index in the array of cards
+function sendPickedCardToServer(socket, client, pickedCard) {
+	const { canGuess, name } = client;
+	if(canGuess) { 
+		let allCardsArray = [].slice.call(document.querySelectorAll(".card"));
+		socket.emit('cardWasPicked', allCardsArray.indexOf(pickedCard));
+		socket.emit('showGuesser', name);
+	} else {
+		alert('It is not your turn! Please wait until next round to guess!');
+	}
+}
+
 module.exports = {
     shuffleNumbers: shuffleNumbers,
-    fetchGameWords: fetchGameWords
+    fetchGameWords: fetchGameWords,
+    sendPickedCardToServer: sendPickedCardToServer
 }

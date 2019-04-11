@@ -13,8 +13,6 @@ const startGame_btn   = document.querySelector("#start-game");
 const restartGame_btn = document.querySelector("#restart-game");
 const submitName_btn  = document.querySelector("#name-btn");
 
-const blueScoreValue = document.querySelector("#blue-score-number");
-const redScoreValue  = document.querySelector("#red-score-number");
 const hintInput      = document.querySelector("#hint-input-container");
 const nameInput      = document.querySelector("#name-input");
 const chat           = document.querySelector("#chat");
@@ -45,11 +43,6 @@ const client = {
 	canGuess: false
 };
 
-const cardType = {
-	redTeamStarts: ['red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'black'],
-	blueTeamStarts: ['red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'black'],
-};
-
 let gameisNotStarted = true;
 let bothSpiesExist = false;
 
@@ -59,18 +52,6 @@ let bothSpiesExist = false;
 const hideShowHandlers = require('./functions/update/hide-show-handlers');
 let HIDE_ELEMENTS = hideShowHandlers.hideElements;
 let SHOW_ELEMENTS = hideShowHandlers.showElements;
-
-/* 
-	HTML EVENT LISTENERS
-*/
-
-startGame_btn.addEventListener("click", gameStartSetup);
-restartGame_btn.addEventListener("click", restartGame);
-document.querySelector("#hint-btn").addEventListener("click", startGuess);
-
-// add a click listener to all cards
-for(let i = 0; i < allCards.length; i++)
-	allCards[i].addEventListener("click", whichCardWasPicked);
 
 
 /***************************************************************
@@ -118,17 +99,17 @@ socket.on('add new player', (spectatorName) => APPEND_TO_DOM(spectatorName, spec
 socket.on('add blue player', (bluePlayerName) => APPEND_TO_DOM(bluePlayerName, bluePlayerList));
 socket.on('add red player', (redPlayerName) => APPEND_TO_DOM(redPlayerName, redPlayerList));
 
-socket.on('update players for new connection', ({ spectators, bluePlayers, redPlayers }) => {
-	UPDATE_CURRENT_PLAYERS(spectators, spectatorList);
-	UPDATE_CURRENT_PLAYERS(bluePlayers, bluePlayerList);
-	UPDATE_CURRENT_PLAYERS(redPlayers,  redPlayerList);
-});
-
 socket.on('removeSpectator', (spectator) => UPDATE_PLAYER_LISTS(socket, spectator, spectatorList, client));
 socket.on('spectatorLeft', (spectator)   => UPDATE_PLAYER_LISTS(socket, spectator, spectatorList, client));
 socket.on('bluePlayerLeft', (bluePlayer) => REMOVE_FROM_DOM(bluePlayer, bluePlayerList));
 socket.on('redPlayerLeft', (redPlayer)   => REMOVE_FROM_DOM(redPlayer, redPlayerList));
 socket.on('bothSpiesExist', (doBothSpiesExist) => bothSpiesExist = doBothSpiesExist);
+
+socket.on('update players for new connection', ({ spectators, bluePlayers, redPlayers }) => {
+	UPDATE_CURRENT_PLAYERS(spectators, spectatorList);
+	UPDATE_CURRENT_PLAYERS(bluePlayers, bluePlayerList);
+	UPDATE_CURRENT_PLAYERS(redPlayers,  redPlayerList);
+});
 
 /* 
 	SPYMASTER SET UP
@@ -156,8 +137,8 @@ socket.on('update blue spymaster for new connection', ({ blueSpyMaster, blueSpyE
 	REMOVE_SPY_BUTTON(socket, blueSpyMaster, blueSpyExists, 'blue');
 });
 
-socket.on('update blue spymaster for new connection', ({ redSpyMaster, redSpyExists }) => {
-	REMOVE_SPY_BUTTON(socket, redSpyMaster, redSpyExists, 'blue');
+socket.on('update red spymaster for new connection', ({ redSpyMaster, redSpyExists }) => {
+	REMOVE_SPY_BUTTON(socket, redSpyMaster, redSpyExists, 'red');
 });
 
 socket.on('blueSpyLeft',        () => SHOW_SPY_BUTTON(client, 'blue'));
@@ -196,115 +177,49 @@ socket.on('showClientChatter', () => HIGHLIGHT_CHATTER(client));
 ****************************************************************/
 
 /*
-	MODULE IMPORTS FOR GAME SET UP
+	INITIAL GAME SET UP
 */
-const SHUFFLE_NUMBERS = require('./functions/game-setup/card-handlers');
+const gameSetupHandlers = require('./functions/game-setup/game-setup-handlers');
+let SET_STARTING_BOARD   = gameSetupHandlers.setStartingBoard;
+let SHOW_SCORES          = gameSetupHandlers.showScores;
+let SET_GAME_WORDS       = gameSetupHandlers.setGameWords;
+let SET_SPY_BOARD_COLORS = gameSetupHandlers.setSpyBoardColors;
+let CREATE_HINT_BOX      = gameSetupHandlers.createHintBox;
 
-function gameStartSetup(){
-	if(bothSpiesExist && gameisNotStarted){
-		socket.emit('gameHasStarted');
-		let boardData = {
-			randomIndices: [],
-			divColors: []
-		}
-		let randomNumbers = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24];
+/* GAME SETUP HTML LISTENERS */
+document.querySelector("#hint-btn").addEventListener("click", startGuess);
+restartGame_btn.addEventListener("click", restartGame);
+startGame_btn.addEventListener("click", () => {
+	SET_STARTING_BOARD(socket, bothSpiesExist, gameisNotStarted);
+});
 
-		SHUFFLE_NUMBERS(randomNumbers);
-		boardData.randomIndices = randomNumbers;
-		let randomTeamStarts = Math.floor(Math.random() * 2); // returns 0 or 1
-
-		if(randomTeamStarts == 0){
-			boardData.divColors = cardType.blueTeamStarts;
-			socket.emit('blueTeamStarts');
-		}
-		else if(randomTeamStarts == 1){
-			boardData.divColors = cardType.redTeamStarts;
-			socket.emit('redTeamStarts');
-		}
-		socket.emit('setUpBoardforSpies', boardData);
-		socket.emit('showRestartButton');
-
-		// about 1000 words in this file, can add/remove any words you want to play with in this file
-		let possibleWords = getWordsFromFile("words.txt");
-		let boardWords = [];
-
-		// take random words from the file of words and push them to the array of 25 words for the game board
-		for(let i = 0; i < 25; i++){
-			let randomWord = Math.floor(Math.random() * possibleWords.length);
-			boardWords.push(possibleWords[randomWord]);
-		}
-		socket.emit('setUpGameWords', boardWords);
-	} else {
-		alert('You need atleast 4 players to play, 2 Supaimasutas and 2 guessers!');
-	}
+for(let i = 0; i < allCards.length; i++) {
+	allCards[i].addEventListener("click", whichCardWasPicked);
 }
 
-// reveals the scores for both teams when game starts
-function showScores(gameData){
-	blueScoreValue.innerHTML = gameData.numBlueCards;
-	redScoreValue.innerHTML = gameData.numRedCards;
-	//SHOW_ELEMENTS(document.querySelector("#blue-score"), document.querySelector("#red-score"));
-	document.querySelector("#blue-score").style.display = "inline-block";
-	document.querySelector("#red-score").style.display = "inline-block";
-}
+/* GAME SETUP SOCKET LISTENERS */
+socket.on('gameHasStarted', () => gameisNotStarted = false);
+socket.on('showScores',         (gameData) => SHOW_SCORES(gameData));
+socket.on('setUpGameWords',   (boardWords) => SET_GAME_WORDS(boardWords));
+socket.on('youCanSeeTheBoard', (boardData) => SET_SPY_BOARD_COLORS(boardData));
+socket.on('createHintBox',      (gameData) => CREATE_HINT_BOX(gameData));
 
-// updates the scores whenever a card is picked
-function updateScore(gameData){
-	blueScoreValue.innerHTML = gameData.numBlueCards;
-	redScoreValue.innerHTML = gameData.numRedCards;
-}
+/* 
+	GAME PLAY 
+*/
+const gameplayHandlers = require('./functions/game-setup/game-play-handlers');
+let UPDATE_SCORES = gameplayHandlers.updateScores;
 
-function setUpGameWords(boardWords){
-	let gameWords = gameBoard.querySelectorAll("p");
-	for(let i = 0; i < gameWords.length; i++)
-		gameWords[i].innerHTML = boardWords[i];
-}
-
-function getWordsFromFile(file){
-	let fileWords;
-    let rawFile = new XMLHttpRequest();
-    rawFile.open("GET", file, false);
-    rawFile.onreadystatechange = function (){
-        if(rawFile.readyState === 4){
-            if(rawFile.status === 200 || rawFile.status == 0){
-                let allWords = rawFile.responseText;
-                fileWords = allWords.split('\n');
-            }
-        }
-    }
-    rawFile.send(null);
-    return fileWords;
-}
-
-function updateGameStatus(){
-	gameisNotStarted = false;
-}
-
-function spyMasterBoard(boardObject){
-	// assign random color to each div or card on the game board
-	for(let i = 0; i < allCards.length; i++){
-		let randomIndex = boardObject.randomIndices[i];
-		let randomCardColor = boardObject.divColors[randomIndex];
-		allCards[i].classList.add(randomCardColor);
-	}
-}
-
-function createHintBox({ isBlueTurn, numBlueCards, numRedCards }){
-	SHOW_ELEMENTS(
-		document.querySelector("#hint-input-container")
-	);
-	let selectNode = document.createElement("select");
-	document.querySelector("#hint-input-container").insertBefore(selectNode, document.querySelector("#hint-input-container").firstChild);
-	let numCards = isBlueTurn ? numBlueCards : numRedCards;
-
-	// create dropdown menu for number of guesses to the hint
-    for(let i = 1; i < (numCards+1); i++){
-    	let selectOption = document.createElement("option");
-    	selectOption.setAttribute("value", i);
-    	selectOption.innerHTML = i;
-    	selectNode.appendChild(selectOption);
-	}
-}
+socket.on('waitingForBlueSpy', blueTeamWaits);
+socket.on('waitingForRedSpy', redTeamWaits);
+socket.on('guessMessage', guessMessage);
+socket.on('revealHint', revealHint);
+socket.on('pickCards', pickCards);
+socket.on('showGuesser', showGuesser);
+socket.on('updateScore', (gameData) => UPDATE_SCORES(gameData));
+socket.on('revealCardColor', revealCardColor);
+socket.on('guessHasBeenMade', revealCardForSpies);
+socket.on('donePickingCards', disableEventListeners);
 
 function blueTeamWaits({ gameOver }){
 	if(!gameOver){
@@ -632,21 +547,6 @@ socket.on('updateBoard', updateBoard);
 socket.on('updateGameWords', updateGameWords);
 
 // game started
-socket.on('gameHasStarted', updateGameStatus);
-socket.on('showScores', showScores);
-socket.on('setUpGameWords', setUpGameWords);
-socket.on('youCanSeeTheBoard', spyMasterBoard);
-socket.on('createHintBox', createHintBox);
-socket.on('waitingForBlueSpy', blueTeamWaits);
-socket.on('waitingForRedSpy', redTeamWaits);
-socket.on('guessMessage', guessMessage);
-socket.on('revealHint', revealHint);
-socket.on('pickCards', pickCards);
-socket.on('showGuesser', showGuesser);
-socket.on('updateScore', updateScore);
-socket.on('revealCardColor', revealCardColor);
-socket.on('guessHasBeenMade', revealCardForSpies);
-socket.on('donePickingCards', disableEventListeners);
 socket.on('blueWins', blueWins);
 socket.on('redWins', redWins);
 socket.on('restartingGame', removePlayers);

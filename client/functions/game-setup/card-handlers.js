@@ -1,3 +1,5 @@
+const allCards = document.querySelectorAll(".card");
+
 // takes an array of the board's card positions and shuffles the indices around
 function shuffleNumbers(cardPositions) {
     let i = cardPositions.length;
@@ -36,7 +38,7 @@ function fetchGameWords(file){
 function sendPickedCardToServer(socket, client, pickedCard) {
 	const { canGuess, name } = client;
 	if(canGuess) { 
-		let allCardsArray = [].slice.call(document.querySelectorAll(".card"));
+		let allCardsArray = [].slice.call(allCards);
 		socket.emit('cardWasPicked', allCardsArray.indexOf(pickedCard));
 		socket.emit('showGuesser', name);
 	} else {
@@ -44,8 +46,102 @@ function sendPickedCardToServer(socket, client, pickedCard) {
 	}
 }
 
+// just changes styles for spies when a card is selected so they know what the guesses are
+function revealCardForSpies({ cardSelected, gameBoardColors }){
+	console.log(allCards);
+	let word = allCards[cardSelected].querySelector("p");
+	word.style.textDecoration = "line-through";
+    allCards[cardSelected].classList.remove('rotate');
+    
+    let colorToRemove = 
+          gameBoardColors[cardSelected] === 'blue' ? 'blue' 
+        : gameBoardColors[cardSelected] === 'red' ? 'red'
+        : gameBoardColors[cardSelected] === 'yellow' ? 'yellow' : 'black';
+
+    let colorToAdd = 
+          gameBoardColors[cardSelected] === 'blue' ? 'blue2' 
+        : gameBoardColors[cardSelected] === 'red' ? 'red2'
+        : gameBoardColors[cardSelected] === 'yellow' ? 'yellow' : 'black2';
+
+    allCards[cardSelected].classList.remove(colorToRemove);
+    allCards[cardSelected].classList.add(colorToAdd);
+    allCards[cardSelected].classList.add('rotate');
+    
+    
+	// if(gameBoardColors[cardSelected] == 'blue'){
+	// 	allCards[cardSelected].classList.remove('blue');
+	// 	allCards[cardSelected].classList.add('blue2');
+	// }
+	// else if(gameBoardColors[cardSelected] == 'red'){
+	// 	allCards[cardSelected].classList.remove('red');
+	// 	allCards[cardSelected].classList.add('red2');
+	// }
+	// else if(gameBoardColors[cardSelected] == 'yellow'){
+	// 	allCards[cardSelected].classList.remove('yellow');
+	// 	allCards[cardSelected].classList.add('yellow2');		
+	// }
+	// else{
+	// 	allCards[cardSelected].classList.remove('black');
+	// 	allCards[cardSelected].classList.add('black2');
+	// }
+}
+
+// receives the selected card from above and reveals its true color from the game board
+// turn ends when the number of selected cards match the number given in the hint
+// turn also ends when a yellow or a card from the opposite team is selected
+function revealCardColor(socket, gameData){
+    const { 
+        cardSelected, 
+        gameBoardColors, 
+        numCardsPicked, 
+        numCardsToGuess, 
+        isBlueTurn, 
+        isRedTurn 
+    } = gameData;
+
+	allCards[cardSelected].classList.remove("default");
+	allCards[cardSelected].classList.add(gameBoardColors[cardSelected]);
+	allCards[cardSelected].classList.remove('rotate');
+	socket.emit('updateCardCount', gameBoardColors[cardSelected]);
+
+	if(numCardsPicked < numCardsToGuess) {
+		if((isBlueTurn && gameBoardColors[cardSelected] == 'red') ||
+		   (isRedTurn && gameBoardColors[cardSelected] == 'blue') ||
+           gameBoardColors[cardSelected] == 'yellow') 
+           {
+			socket.emit('endTurn');
+        }
+        
+		if(gameBoardColors[cardSelected] == 'black')
+			socket.emit('blackCard');
+	}
+	else {
+		if(gameBoardColors[cardSelected] == 'black') {
+			socket.emit('blackCard');
+        } else {
+			socket.emit('updateCardCount', gameBoardColors[cardSelected]);
+			socket.emit('endTurn');
+		}
+	}
+	allCards[cardSelected].classList.add('rotate');
+}
+
+// boolean controlled by the server (will only run for clients when it is their turn to guess)
+function enableGuessing(client){
+	client.canGuess = true;
+}
+
+// players aren't allowed to guess/select cards during the hinting phase 
+function disableGuessing(client){
+	client.canGuess = false;
+}
+
 module.exports = {
     shuffleNumbers: shuffleNumbers,
     fetchGameWords: fetchGameWords,
-    sendPickedCardToServer: sendPickedCardToServer
+    sendPickedCardToServer: sendPickedCardToServer,
+    revealCardForSpies: revealCardForSpies,
+    revealCardColor: revealCardColor,
+    enableGuessing: enableGuessing,
+    disableGuessing: disableGuessing
 }

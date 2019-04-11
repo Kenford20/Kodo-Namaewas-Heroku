@@ -72,8 +72,6 @@ let HANDLE_JOIN_TEAM = teamHandlers.handleJoinTeam;
 
 const updateHandlers = require('./functions/update/update-handlers');
 let UPDATE_CURRENT_PLAYERS = updateHandlers.updateCurrentPlayers;
-let UPDATE_BOARD           = updateHandlers.updateBoard;
-let UPDATE_GAME_WORDS      = updateHandlers.updateGameWords;
 
 /* PLAYER SET UP HTML LISTENERS */
 submitName_btn.addEventListener("click", () => {
@@ -186,6 +184,9 @@ let SET_GAME_WORDS       = gameSetupHandlers.setGameWords;
 let SET_SPY_BOARD_COLORS = gameSetupHandlers.setSpyBoardColors;
 let CREATE_HINT_BOX      = gameSetupHandlers.createHintBox;
 
+let UPDATE_BOARD      = updateHandlers.updateBoard;
+let UPDATE_GAME_WORDS = updateHandlers.updateGameWords;
+
 /* GAME SETUP HTML LISTENERS */
 restartGame_btn.addEventListener("click", restartGame);
 startGame_btn.addEventListener("click", () => {
@@ -199,6 +200,9 @@ socket.on('setUpGameWords',   (boardWords) => SET_GAME_WORDS(boardWords));
 socket.on('youCanSeeTheBoard', (boardData) => SET_SPY_BOARD_COLORS(boardData));
 socket.on('createHintBox',      (gameData) => CREATE_HINT_BOX(gameData));
 
+socket.on('updateBoard', (gameData) => UPDATE_BOARD(gameData));
+socket.on('updateGameWords', (gameData) => UPDATE_GAME_WORDS(gameData));
+
 /* 
 	GAME PLAY 
 */
@@ -208,22 +212,14 @@ let SHOW_WAITING_MESSAGE = gameplayHandlers.showWaitingMessage;
 let START_GUESS = gameplayHandlers.startGuess;
 let SHOW_GUESS_MESSAGE = gameplayHandlers.showGuessMessage;
 let REVEAL_HINT = gameplayHandlers.revealHint;
-let CLIENT_CAN_GUESS = gameplayHandlers.clientCanGuess;
+let SHOW_GUESSER = gameplayHandlers.showGuesser;
 
-let SEND_PICKED_CARD_TO_SERVER = require('./functions/game-setup/card-handlers').sendPickedCardToServer;
-
-// determines which card was selected based on the index in the array of cards
-function sendPickedCardToServer() {
-	const { canGuess, name } = client;
-	if(canGuess) { 
-		console.log(this);
-		let allCardsArray = [].slice.call(document.querySelectorAll(".card"));
-		socket.emit('cardWasPicked', allCardsArray.indexOf(this));
-		socket.emit('showGuesser', name);
-	} else {
-		alert('It is not your turn! Please wait until next round to guess!');
-	}
-}
+let cardHandlers = require('./functions/game-setup/card-handlers');
+let SEND_PICKED_CARD_TO_SERVER = cardHandlers.sendPickedCardToServer;
+let REVEAL_CARD_COLOR_EVERYONE = cardHandlers.revealCardColor;
+let REVEAL_CARD_COLOR_SPIES = cardHandlers.revealCardForSpies;
+let ENABLE_GUESSING = cardHandlers.enableGuessing;
+let DISABLE_GUESSING = cardHandlers.disableGuessing;
 
 /* GAME PLAY HTML LISTENERS */
 document.querySelector("#hint-btn").addEventListener("click", () => START_GUESS(socket));
@@ -239,88 +235,13 @@ socket.on('updateScore', (gameData) => UPDATE_SCORES(gameData));
 socket.on('waitingForBlueSpy', (gameData) => SHOW_WAITING_MESSAGE(gameData, 'blue'));
 socket.on('waitingForRedSpy', (gameData) => SHOW_WAITING_MESSAGE(gameData, 'red'));
 socket.on('guessMessage', (gameData) => SHOW_GUESS_MESSAGE(gameData));
+
 socket.on('revealHint', (hintData) => REVEAL_HINT(hintData));
-socket.on('pickCards', () => CLIENT_CAN_GUESS(client));
-socket.on('showGuesser', showGuesser);
-socket.on('revealCardColor', revealCardColor);
-socket.on('guessHasBeenMade', revealCardForSpies);
-socket.on('donePickingCards', disableEventListeners);
-
-// reveals the div that shows who guessed the lastly guessed word
-function showGuesser({ isBlueTurn, isRedTurn, cardSelected, playerWhoGuessed }){
-	if(isBlueTurn){
-		document.querySelector("#blue-guess-name").innerHTML = playerWhoGuessed;
-		let wordPicked = allCards[cardSelected].querySelector("p").innerHTML
-		document.querySelector("#blue-guess-word").innerHTML = wordPicked;
-		SHOW_ELEMENTS(document.querySelector("#blue-guesser"));
-	}
-	else if(isRedTurn){
-		document.querySelector("#red-guess-name").innerHTML = playerWhoGuessed;
-		let wordPicked = allCards[cardSelected].querySelector("p").innerHTML
-		document.querySelector("#red-guess-word").innerHTML = wordPicked;
-		SHOW_ELEMENTS(document.querySelector("#red-guesser"));
-	}
-}
-
-// just changes styles for spies when a card is selected so they know what the guesses are
-function revealCardForSpies({ cardSelected, gameBoardColors }){
-	console.log(allCards);
-	let word = allCards[cardSelected].querySelector("p");
-	word.style.textDecoration = "line-through";
-	allCards[cardSelected].classList.remove('rotate');
-
-	if(gameBoardColors[cardSelected] == 'blue'){
-		allCards[cardSelected].classList.remove('blue');
-		allCards[cardSelected].classList.add('blue2');
-	}
-	else if(gameBoardColors[cardSelected] == 'red'){
-		allCards[cardSelected].classList.remove('red');
-		allCards[cardSelected].classList.add('red2');
-	}
-	else if(gameBoardColors[cardSelected] == 'yellow'){
-		allCards[cardSelected].classList.remove('yellow');
-		allCards[cardSelected].classList.add('yellow2');		
-	}
-	else{
-		allCards[cardSelected].classList.remove('black');
-		allCards[cardSelected].classList.add('black2');
-	}
-	allCards[cardSelected].classList.add('rotate');
-}
-
-// receives the selected card from above and reveals its true color from the game board
-// turn ends when the number of selected cards match the number given in the hint
-// turn also ends when a yellow or a card from the opposite team is selected
-function revealCardColor({ cardSelected, gameBoardColors, numCardsPicked, numCardsToGuess, isBlueTurn, isRedTurn }){	
-	allCards[cardSelected].classList.remove("default");
-	allCards[cardSelected].classList.add(gameBoardColors[cardSelected]);
-	allCards[cardSelected].classList.remove('rotate');
-	socket.emit('updateCardCount', gameBoardColors[cardSelected]);
-
-	if(numCardsPicked < numCardsToGuess){
-		if((isBlueTurn && gameBoardColors[cardSelected] == 'red') ||
-		   (isRedTurn && gameBoardColors[cardSelected] == 'blue') ||
-		   gameBoardColors[cardSelected] == 'yellow'){
-				socket.emit('endTurn');
-		}
-		if(gameBoardColors[cardSelected] == 'black')
-			socket.emit('blackCard');
-	}
-	else{
-		if(gameBoardColors[cardSelected] == 'black')
-			socket.emit('blackCard');
-		else{
-			socket.emit('updateCardCount', gameBoardColors[cardSelected]);
-			socket.emit('endTurn');
-		}
-	}
-	allCards[cardSelected].classList.add('rotate');
-}
-
-// players aren't allowed to guess/select cards during the hinting phase 
-function disableEventListeners(){
-	client.canGuess = false;
-}
+socket.on('showGuesser', (gameData) => SHOW_GUESSER(gameData));
+socket.on('guessHasBeenMade', (gameData) => REVEAL_CARD_COLOR_SPIES(gameData));
+socket.on('revealCardColor', (gameData) => REVEAL_CARD_COLOR_EVERYONE(socket, gameData));
+socket.on('pickCards', () => ENABLE_GUESSING(client));
+socket.on('donePickingCards', () => DISABLE_GUESSING(client));
 
 function blueWins(){
 	document.querySelector("#congrats").classList.add("blue-word");
@@ -364,23 +285,6 @@ function newBoard({ currentBoardColors }){
 		allCards[i].classList.remove("blue");
 		allCards[i].classList.remove("yellow");
 		allCards[i].classList.remove("black");
-	}
-}
-
-function updateBoard(gameData){
-	for(let i = 0; i < allCards.length; i++){
-		if(gameData.currentBoardColors[i] != 'lightgrey')
-			allCards[i].classList.add(gameData.currentBoardColors[i]);
-	}
-}
-
-function updateGameWords(gameData){
-	if(gameData.gameHasStarted){
-		let gameWords = gameBoard.querySelectorAll("p");	
-		for(let i = 0; i < gameWords.length; i++){
-			gameWords[i].innerHTML = gameData.gameWords[i];
-		}
-		document.querySelector("#message").classList.add("hide");
 	}
 }
 
@@ -469,9 +373,6 @@ function removePlayers({ allPlayers }){
 
 /* Sockets
 **************************************/
-
-socket.on('updateBoard', updateBoard);
-socket.on('updateGameWords', updateGameWords);
 
 // game started
 socket.on('blueWins', blueWins);

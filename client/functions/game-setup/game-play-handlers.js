@@ -81,11 +81,17 @@ function revealHint(hintData) {
 	}
 }
 
-// boolean controlled by the server (will only run for clients when it is their turn to guess)
-function clientCanGuess(client){
-	client.canGuess = true;
-}
+// reveals the div that shows who guessed the lastly guessed word
+function showGuesser({ isBlueTurn, cardSelected, playerWhoGuessed }){
+	let guesserID = isBlueTurn ? "#blue-guess-name" : "red-guess-name";
+	let guessedWordID = isBlueTurn ? "#blue-guess-word" : "#red-guess-word";
+	let guesserDiv = isBlueTurn ? "#blue-guesser" : "#red-guesser";
 
+	document.querySelector(guesserID).innerHTML = playerWhoGuessed;
+	let wordPicked = allCards[cardSelected].querySelector("p").innerHTML
+	document.querySelector(guessedWordID).innerHTML = wordPicked;
+	SHOW_ELEMENTS(document.querySelector(guesserDiv));
+}
 
 module.exports = {
     updateScores: updateScores,
@@ -93,5 +99,5 @@ module.exports = {
     startGuess: startGuess,
     showGuessMessage: showGuessMessage,
     revealHint: revealHint,
-    clientCanGuess: clientCanGuess
+	showGuesser: showGuesser
 }

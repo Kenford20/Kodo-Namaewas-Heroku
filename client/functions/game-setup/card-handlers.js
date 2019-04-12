@@ -48,9 +48,6 @@ function sendPickedCardToServer(socket, client, pickedCard) {
 
 // just changes styles for spies when a card is selected so they know what the guesses are
 function revealCardForSpies({ cardSelected, gameBoardColors }){
-	console.log(allCards);
-	let word = allCards[cardSelected].querySelector("p");
-	word.style.textDecoration = "line-through";
     allCards[cardSelected].classList.remove('rotate');
     
     let colorToRemove = 
@@ -61,29 +58,11 @@ function revealCardForSpies({ cardSelected, gameBoardColors }){
     let colorToAdd = 
           gameBoardColors[cardSelected] === 'blue' ? 'blue2' 
         : gameBoardColors[cardSelected] === 'red' ? 'red2'
-        : gameBoardColors[cardSelected] === 'yellow' ? 'yellow' : 'black2';
+        : gameBoardColors[cardSelected] === 'yellow' ? 'yellow2' : 'black2';
 
     allCards[cardSelected].classList.remove(colorToRemove);
     allCards[cardSelected].classList.add(colorToAdd);
     allCards[cardSelected].classList.add('rotate');
-    
-    
-	// if(gameBoardColors[cardSelected] == 'blue'){
-	// 	allCards[cardSelected].classList.remove('blue');
-	// 	allCards[cardSelected].classList.add('blue2');
-	// }
-	// else if(gameBoardColors[cardSelected] == 'red'){
-	// 	allCards[cardSelected].classList.remove('red');
-	// 	allCards[cardSelected].classList.add('red2');
-	// }
-	// else if(gameBoardColors[cardSelected] == 'yellow'){
-	// 	allCards[cardSelected].classList.remove('yellow');
-	// 	allCards[cardSelected].classList.add('yellow2');		
-	// }
-	// else{
-	// 	allCards[cardSelected].classList.remove('black');
-	// 	allCards[cardSelected].classList.add('black2');
-	// }
 }
 
 // receives the selected card from above and reveals its true color from the game board
@@ -98,6 +77,8 @@ function revealCardColor(socket, gameData){
         isBlueTurn, 
         isRedTurn 
     } = gameData;
+
+    console.log(`card: ${cardSelected}`)
 
 	allCards[cardSelected].classList.remove("default");
 	allCards[cardSelected].classList.add(gameBoardColors[cardSelected]);

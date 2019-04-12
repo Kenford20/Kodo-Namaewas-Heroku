@@ -8,9 +8,13 @@ const redGuessMessage    = document.querySelector("#red-guess");
 const resetMessage       = document.querySelector("#reset-message");
 const hintInput          = document.querySelector("#hint-input-container");
 
+const allCards = document.querySelectorAll(".card");
+
 const hideShowHandlers = require('../update/hide-show-handlers');
 let HIDE_ELEMENTS = hideShowHandlers.hideElements;
 let SHOW_ELEMENTS = hideShowHandlers.showElements;
+
+let DISABLE_GUESSING = require('../game-setup/card-handlers').disableGuessing;
 
 function updateScores({ numBlueCards, numRedCards }){
 	blueScoreValue.innerHTML = numBlueCards;
@@ -83,7 +87,7 @@ function revealHint(hintData) {
 
 // reveals the div that shows who guessed the lastly guessed word
 function showGuesser({ isBlueTurn, cardSelected, playerWhoGuessed }){
-	let guesserID = isBlueTurn ? "#blue-guess-name" : "red-guess-name";
+	let guesserID = isBlueTurn ? "#blue-guess-name" : "#red-guess-name";
 	let guessedWordID = isBlueTurn ? "#blue-guess-word" : "#red-guess-word";
 	let guesserDiv = isBlueTurn ? "#blue-guesser" : "#red-guesser";
 
@@ -93,11 +97,34 @@ function showGuesser({ isBlueTurn, cardSelected, playerWhoGuessed }){
 	SHOW_ELEMENTS(document.querySelector(guesserDiv));
 }
 
+function endGame(winningTeam, client) {
+	let styleWinner = winningTeam === 'blue' ? "blue-word" : "red-word";
+	let winningMessageID = winningTeam === 'blue' ? "#blue-wins" : "#red-wins";
+
+	let congratsMessage = document.querySelector("#congrats");
+	congratsMessage.classList.add(styleWinner);
+
+	DISABLE_GUESSING(client)
+
+	SHOW_ELEMENTS(
+		document.querySelector(winningMessageID),
+		congratsMessage
+	);
+	HIDE_ELEMENTS(
+		document.querySelector("#hint-message"),
+		blueWaitingMessage,
+		redWaitingMessage,
+		blueGuessMessage,
+		redGuessMessage
+	);
+}
+
 module.exports = {
     updateScores: updateScores,
     showWaitingMessage: showWaitingMessage,
     startGuess: startGuess,
     showGuessMessage: showGuessMessage,
     revealHint: revealHint,
-	showGuesser: showGuesser
+	showGuesser: showGuesser,
+	endGame: endGame
 }

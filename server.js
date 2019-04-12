@@ -328,12 +328,12 @@ io.sockets.on('connection', (socket) => {
 		// tell only blue players to take their turn
 		if(gameData.isBlueTurn){
 			for(let i = 0; i < playerData.blueIDs.length; i++)
-				io.to(playerData.blueIDs[i]).emit('pickCards');
+				io.to(playerData.blueIDs[i]).emit('start guessing phase');
 		}
 		// otherwise tell red players to
 		else{
 			for(let i = 0; i < playerData.redIDs.length; i++)
-				io.to(playerData.redIDs[i]).emit('pickCards');
+				io.to(playerData.redIDs[i]).emit('start guessing phase');
 		}
 	});
 
@@ -406,7 +406,7 @@ io.sockets.on('connection', (socket) => {
 				gameData.isRedTurn = true;
 				io.to(playerData.redSpyID).emit('createHintBox', gameData);
 				io.sockets.emit('waitingForRedSpy', gameData);
-				io.sockets.emit('donePickingCards');
+				io.sockets.emit('end guessing phase');
 			}
 			else if(gameData.isRedTurn){
 				// switch to blue team's turn
@@ -415,14 +415,14 @@ io.sockets.on('connection', (socket) => {
 				gameData.isRedTurn = false;
 				io.to(playerData.blueSpyID).emit('createHintBox', gameData);
 				io.sockets.emit('waitingForBlueSpy', gameData);
-				io.sockets.emit('donePickingCards');
+				io.sockets.emit('end guessing phase');
 			}
 		}
 	});
 
 	socket.on('restartGame', () => {		
-		io.to(playerData.blueSpyID).emit('resetSpyBoard');
-		io.to(playerData.redSpyID).emit('resetSpyBoard');
+		io.to(playerData.blueSpyID).emit('removeSpyInputs');
+		io.to(playerData.redSpyID).emit('removeSpyInputs');
 		io.sockets.emit('restartingGame', playerData);
 		io.sockets.emit('resetTheChat');
 
@@ -461,7 +461,6 @@ io.sockets.on('connection', (socket) => {
 		gameData.gameOver = false; 
 
 		io.sockets.emit('newBoard', gameData);
-		io.sockets.emit('resetWords');
 		console.log("telling clients to restart");
 	});
 });

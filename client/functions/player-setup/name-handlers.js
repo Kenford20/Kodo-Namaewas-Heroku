@@ -11,15 +11,17 @@ function appendToDOM(playerName, elementLocation) {
 }
 
 function removeFromDOM(playerName, playerList) {
-	[].slice.call(playerList.querySelectorAll("h3")).map(name => {
-		if(name.innerHTML === playerName)
-			playerList.removeChild(name); 
-	})
+	if(playerList) {
+		[].slice.call(playerList.querySelectorAll("h3")).map(name => {
+			if(name.innerHTML === playerName)
+				playerList.removeChild(name); 
+		})
+	}
 }
 
 function updatePlayerLists(socket, spectatorName, spectatorList, client) {
 	removeFromDOM(spectatorName, spectatorList);
-
+	
 	// handles team changing of clients (you're switching teams if counter > 1)
 	if(client.teamJoinCounter > 1 && client.name == spectatorName){
 		if(client.team == "red")

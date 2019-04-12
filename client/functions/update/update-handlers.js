@@ -18,7 +18,7 @@ function updateBoard({ currentBoardColors }) {
 }
 
 function updateGameWords(gameData) {
-	if(gameHasStarted){
+	if(gameData.gameHasStarted){
 		let gameWords = gameBoard.querySelectorAll("p");
 		document.querySelector("#message").classList.add("hide");
 

@@ -61,11 +61,22 @@ body {
 
 
 /* color of cards for spymasters when clicked */
-#game-board .red2, #game-board .blue2, #game-board .yellow2, #game-board .black2 { background-color: white }
+#game-board .red2, 
+#game-board .blue2, 
+#game-board .yellow2, 
+#game-board .black2 { 
+	background-color: white;
+	text-decoration: line-through;
+}
+
 #game-board .red2 { border: 10px solid #db3328 }
 #game-board .blue2 { border: 10px solid #1c64ff }
 #game-board .yellow2 { border: 10px solid #fff68f }
-#game-board .black2 { border: 10px solid black; color: black }
+#game-board .black2 { 
+	border: 10px solid rgb(65, 65, 65); 
+	color: white;
+	background: black;
+}
 
 /* Header Styles 
 --------------------------------------------*/

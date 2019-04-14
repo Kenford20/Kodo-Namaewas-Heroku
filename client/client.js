@@ -75,9 +75,9 @@ window.onload = function() {
 	});
 
 	/* PLAYER SET UP SOCKET LISTENERS */
-	socket.on('add new player', (spectatorName) => APPEND_TO_DOM(spectatorName, spectatorList));
+	socket.on('add new player',   (spectatorName) => APPEND_TO_DOM(spectatorName, spectatorList));
 	socket.on('add blue player', (bluePlayerName) => APPEND_TO_DOM(bluePlayerName, bluePlayerList));
-	socket.on('add red player', (redPlayerName) => APPEND_TO_DOM(redPlayerName, redPlayerList));
+	socket.on('add red player',   (redPlayerName) => APPEND_TO_DOM(redPlayerName, redPlayerList));
 
 	socket.on('removeSpectator', (spectator) => UPDATE_PLAYER_LISTS(socket, spectator, spectatorList, client));
 	socket.on('spectatorLeft', (spectator)   => UPDATE_PLAYER_LISTS(socket, spectator, spectatorList, client));

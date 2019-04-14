@@ -18,20 +18,20 @@ body {
 @media only screen and (max-width: 480px) {
 	body {
 		grid-template-columns: 100%;
-		grid-template-rows: 100px 120px 75px 75px 50px minmax(110px, 1fr) 50px 400px 50px minmax(110px, 1fr) 50px 200px;
-		grid-template-areas: "header"
+		grid-template-rows: 100px 120px 40px minmax(110px, 1fr) 40px 60px 340px 60px 40px minmax(110px, 1fr) 40px 350px;
+		grid-template-areas:"header"
 							"spectators"
-							"instructions"
-							"hint"
 							"blue-spy"
 							"blue-team"
 							"blue-guesser"
+							"instructions"
 							"gameboard"
+							"hint"
 							"red-guesser"
 							"red-team"
 							"red-spy"
 							"chat";
-		font-size: 12px;
+		font-size: 11px;
 	}
 }
 
@@ -210,6 +210,9 @@ header h1 {
 	text-align: center;
 	border: 3px solid black;
 	background-color: lightblue;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 #blue-spy-message {
@@ -268,6 +271,9 @@ header h1 {
 
 #red-spy-message, #red-guesser {
 	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	background-color: pink;
 	border: 3px solid black;
 }
@@ -406,6 +412,12 @@ header h1 {
 }
 .highlight-chatter { color:green }
 
+@media only screen and (max-width: 480px) {
+	#chat {
+		flex-direction: column;
+	}
+}
+
 /* Hints
 --------------------------------------------*/
 #hint {
@@ -454,3 +466,9 @@ body select {
 body select option { padding: 0 4px } 
 select::-ms-expand { display: none } 
 select:disabled::-ms-expand { background: #f60 }
+
+@media only screen and (max-width: 480px) {
+	#hint-input-container {
+		margin-top: 10px;
+	}
+}

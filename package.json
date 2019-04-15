@@ -4,8 +4,10 @@
   "description": "code names",
   "main": "server.js",
   "scripts": {
-    "start": "cd client && webpack && cd .. && node server.js",
-    "build": "cd client && webpack"
+    "start": "node server.js",
+    "start-dev": "cd client && webpack && cd .. && node server.js",
+    "build": "cd client && webpack",
+    "heroku-postbuild": "echo Skip build on Heroku"
   },
   "dependencies": {
     "express": "^4.16.3",

@@ -19,15 +19,13 @@ server.listen(port, () => {
 // io is an object that is created by the socket function
 const io = require('socket.io')(server);
 
-const socketIDlist = [];
+const playerList = [];
 const playerData = {
-	allPlayers: [],
 	chatter: '',
 	chatterTeamColor: '',
 	chatMessage: '',
 	isTeamMessage: false,
 	spectators: [],
-	spectatorIDs: [],
 	bluePlayers: [],
 	blueIDs: [],
 	redPlayers: [],
@@ -68,7 +66,7 @@ const gameData = {
 ********************************************/
 io.sockets.on('connection', (socket) => {
 	console.log('socket connection: '+ socket.id);
-	socketIDlist.push(socket.id);
+	playerList.push({ socketID: socket.id, username: null });
 		
 	// update a new player on the overall game state
 	let currentPlayers = {
@@ -94,29 +92,26 @@ io.sockets.on('connection', (socket) => {
 	
 	// handling the server data and client DOM elements on disconnect
 	socket.on('disconnect', () => {
-		const { allPlayers, bluePlayers, redPlayers, spectators, blueSpyID, redSpyID } = playerData;
+		const { bluePlayers, redPlayers, spectators, blueSpyID, redSpyID } = playerData;
+		const leavingPlayerIndex = playerList.map(player => player.socketID).indexOf(socket.id);
+		const leavingPlayerName = playerList[leavingPlayerIndex].username;
+		playerList.splice(leavingPlayerIndex, 1);	
 
-		// issue here: leavingplayerindex for the socket id list is not going to match to the allplayers list
-		// someone who joins first may enter their name after someone who joined next (ie: their socketid will be the first index while their allplayers index will not be the first)
-		// need to somehow match their socket id to the name they enter 
-		let leavingPlayerIndex = socketIDlist.indexOf(socket.id);
-		socketIDlist.splice(leavingPlayerIndex, 1);	
-		let leavingPlayerName = allPlayers[leavingPlayerIndex];
-		allPlayers.splice(leavingPlayerIndex,1);
-
-		// check if leaving player is on blue team, then remove from list
-		if(bluePlayers.includes(leavingPlayerName)){
-			bluePlayers.splice(bluePlayers.indexOf(leavingPlayerName), 1);
-			io.sockets.emit('bluePlayerLeft', leavingPlayerName);
-		} 
-		else if(redPlayers.includes(leavingPlayerName)){
-			redPlayers.splice(redPlayers.indexOf(leavingPlayerName), 1);
-			io.sockets.emit('redPlayerLeft', leavingPlayerName);
+		// check if user has entered a username yet (aka is a spectator)
+		if(leavingPlayerName) {
+			if(bluePlayers.includes(leavingPlayerName)) {
+				bluePlayers.splice(bluePlayers.indexOf(leavingPlayerName), 1);
+				io.sockets.emit('bluePlayerLeft', leavingPlayerName);
+			} 
+			else if(redPlayers.includes(leavingPlayerName)) {
+				redPlayers.splice(redPlayers.indexOf(leavingPlayerName), 1);
+				io.sockets.emit('redPlayerLeft', leavingPlayerName);
+			}
+			else {
+				spectators.splice(spectators.indexOf(leavingPlayerName), 1);
+				io.sockets.emit('spectatorLeft', leavingPlayerName);
+			}	
 		}
-		else{ // leaving player is a spectator, remove from list
-			spectators.splice(spectators.indexOf(leavingPlayerName), 1);
-			io.sockets.emit('spectatorLeft', leavingPlayerName);
-		}	
 
 		// check if leaving player is a spymaster
 		if(socket.id == blueSpyID){
@@ -128,18 +123,21 @@ io.sockets.on('connection', (socket) => {
 			io.sockets.emit('redSpyLeft');
 		}
 		console.log("This player has left: " + leavingPlayerName);
-		console.log(playerData.allPlayers);
-	});
+		console.log(`${socket.id} disconnected`);
+		console.log(playerData.spectators);
+		//console.log(playerList);
+	}); 
 
 	// team setup
 	/****************************************/
 	socket.on('newPlayerJoined', (name) => {
-		const { spectatorIDs, allPlayers, spectators } = playerData;
+		const { spectators } = playerData;
 
-		spectatorIDs.push(socket.id);
-		allPlayers.push(name);
+		const playerIndex = playerList.map(player => player.socketID).indexOf(socket.id);
+		playerList[playerIndex].username = name;
 		spectators.push(name);
 		console.log("spectators after entering: " + spectators);
+		console.log(playerList);
 		io.sockets.emit('add new player', name);
 	});
 
@@ -423,10 +421,13 @@ io.sockets.on('connection', (socket) => {
 	socket.on('restartGame', () => {		
 		io.to(playerData.blueSpyID).emit('removeSpyInputs');
 		io.to(playerData.redSpyID).emit('removeSpyInputs');
-		io.sockets.emit('restartingGame', playerData);
+		io.sockets.emit('restartingGame', playerList);
 		io.sockets.emit('resetTheChat');
 
-		playerData.allPlayers = [];
+		for(let i = 0; i < playerList.length; i++) {
+			playerList[i].username = null;
+		}
+
 		playerData.spectators = [];
 		playerData.bluePlayers = [];
 		playerData.blueIDs = [];

@@ -247,16 +247,16 @@ window.onload = function() {
 	restartGame_btn.addEventListener("click", () => RESTART_GAME(socket, client));
 
 	/* RESTART GAME SOCKET LISTENERS */
-	socket.on('restartingGame', ({ allPlayers }) => {
+	socket.on('restartingGame', (playersList) => {
 		gameisNotStarted = true;
 		bothSpiesExist = false;
 		RESET_DOM_ELEMENTS(client);
 
 		// remove all the player names from the client's browser
-		for(let i = 0; i < allPlayers.length; i++) {
-			UPDATE_PLAYER_LISTS(socket, allPlayers[i], spectatorList, client);
-			REMOVE_FROM_DOM(allPlayers[i], bluePlayerList);
-			REMOVE_FROM_DOM(allPlayers[i], redPlayerList);
+		for(let i = 0; i < playersList.length; i++) {
+			UPDATE_PLAYER_LISTS(socket, playersList[i].username, spectatorList, client);
+			REMOVE_FROM_DOM(playersList[i].username, bluePlayerList);
+			REMOVE_FROM_DOM(playersList[i].username, redPlayerList);
 		}
 	});
 

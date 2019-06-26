@@ -15,6 +15,10 @@ body {
 						 "chat chat chat";
 }
 
+body h3 {
+	margin: 10px;
+}
+
 @media only screen and (max-width: 480px) {
 	body {
 		grid-template-columns: 100%;

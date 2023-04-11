@@ -1,7 +1,7 @@
 # Kodo Namaewas: a multiplayer, online version of Codenames, with a Japanese mix.
 
 Play this table-top card game across multiple devices with your friends on a shared board!
-Just open a browser and type in the URL(www.weebcodenames.online) while your friends are connected.
+Just open a browser and type in the URL(https://kodo-namaewaz.web.app/) while your friends are connected.
 
 ##### *Screenshot of app upon entering the website*
 ![codenames2](https://user-images.githubusercontent.com/41027303/52194222-f706e700-2820-11e9-9886-44a23886c41e.png)
